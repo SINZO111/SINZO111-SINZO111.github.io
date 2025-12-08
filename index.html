@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ジョジョTRPG 作成 </title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<style>
+  :root {
+    --bg-main: #f0f9ff; --bg-panel: #e0f2fe; --text-main: #1e293b;
+    --accent: #9333ea; --accent-gold: #d97706; --border: #cbd5e1;
+    --danger: #ef4444; --spirit: #7e22ce; --stand-p: #10b981; --success: #10b981;
+    --container-bg: #ffffff; --input-bg: #ffffff; --input-text: #0f172a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
+    background: var(--bg-main); color: var(--text-main); margin: 0; padding: 20px;
+    background-image: linear-gradient(rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .container {
+    max-width: 1000px; margin: 0 auto; background: var(--container-bg); padding: 25px;
+    border: 3px solid var(--accent); box-shadow: 10px 10px 0 rgba(147,51,234,0.2); border-radius: 12px; position: relative;
+  }
+  h1 { text-align: center; color: var(--accent); margin: 0 0 20px 0; border-bottom: 3px double var(--accent); padding-bottom: 10px; letter-spacing: 2px; }
+
+  /* ヘルプボタン */
+  .help-btn {
+    position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
+    background: var(--accent-gold); color: #fff; border-radius: 50%; border: none;
+    font-weight: bold; font-size: 1.5rem; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  .help-btn:hover { transform: scale(1.1); }
+
+  /* モーダル */
+  .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+  .modal-content {
+    background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 800px;
+    border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto;
+  }
+  .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+  .close:hover { color: black; }
+  .modal h3 { border-left: 4px solid var(--accent); padding-left: 10px; color: var(--accent); margin-top: 20px; }
+  .modal p { font-size: 0.9rem; line-height: 1.6; color: #333; }
+
+  /* 管理パネル */
+  .manager-panel { background: var(--bg-panel); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border: 2px solid #bae6fd; }
+  .char-list { padding: 8px; min-width: 200px; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--border); border-radius: 4px; }
+  .btn { padding: 8px 16px; border: 2px solid transparent; cursor: pointer; color: #fff; font-weight: bold; border-radius: 6px; transition: all 0.2s; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+  .btn-save { background: var(--success); } .btn-load { background: #d97706; } .btn-del { background: var(--danger); }
+  .btn-neutral { background: #64748b; } .btn-stand { background: var(--accent); color: #fff; }
+
+  /* タブ */
+  .tab-menu { display: flex; border-bottom: 3px solid var(--accent); margin-bottom: 25px; }
+  .tab-btn { padding: 12px 25px; background: #f1f5f9; cursor: pointer; color: #64748b; margin-right: 6px; border-radius: 8px 8px 0 0; font-weight: bold; border: 1px solid transparent; transition: all 0.2s; }
+  .tab-btn.active { background: var(--accent); color: #fff; box-shadow: none; }
+  .tab-content { display: none; animation: fadeIn 0.3s ease; } .tab-content.active { display: block; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(5px);} to{opacity:1; transform:translateY(0);} }
+
+  /* フォーム */
+  .row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px; } .col { flex: 1; min-width: 200px; }
+  label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; color: var(--accent-gold); border-left: 4px solid var(--accent-gold); padding-left: 8px; background: #fffbeb; }
+  input, textarea, select { width: 100%; padding: 10px; background: var(--input-bg); border: 2px solid #e2e8f0; color: var(--input-text); border-radius: 6px; font-family: inherit; font-size: 1rem; transition: border-color 0.2s; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); background: #faf5ff; }
+
+  /* ステータスバー */
+  .status-container { display: flex; gap: 15px; margin: 20px 0; }
+  .status-box { flex: 1; text-align: center; padding: 15px; border-radius: 12px; font-family: "Courier New", monospace; box-shadow: 4px 4px 0 rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .status-val { font-size: 2.2rem; font-weight: 900; line-height: 1; }
+  .status-label { font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; }
+  .status-sub { font-size: 0.7rem; opacity: 0.8; }
+  .hp-style { background: #fff1f2; color: var(--danger); border: 3px solid var(--danger); }
+  .sp-style { background: #f3e8ff; color: var(--spirit); border: 3px solid var(--spirit); }
+  .stp-style { background: #ecfdf5; color: var(--stand-p); border: 3px solid var(--stand-p); display: none; }
+
+  /* 能力値ブロック */
+  .attr-block { background: #f8fafc; border: 2px solid var(--border); padding: 15px; border-radius: 8px; }
+  .attr-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 15px; }
+  .attr-header span { font-size: 1.1rem; font-weight: bold; color: var(--text-main); }
+  .attr-header input { width: 70px; text-align: center; font-size: 1.2rem; font-weight: bold; background: #fff; border-color: var(--accent); color: var(--text-main); }
+  .skill-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9rem; }
+  .skill-row input { width: 60px; text-align: center; padding: 5px; }
+
+  /* スタンド */
+  .awake-btn { width: 100%; padding: 20px; background: linear-gradient(135deg, #7c3aed, #9333ea); color: #fff; font-size: 1.3rem; font-weight: bold; border: none; cursor: pointer; margin: 30px 0; border-radius: 12px; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4); transition: transform 0.2s; }
+  .awake-btn:hover { transform: scale(1.02); }
+  #stand-section { display: none; border: 3px solid var(--accent); padding: 20px; border-radius: 12px; background: #f3e8ff; margin-top: 20px; }
+
+  /* プレビュー */
+  #export-preview-area { background: #e2e8f0; padding: 20px; text-align: center; margin-top: 20px; border-radius: 8px; overflow-x: auto; border: 2px dashed #94a3b8; }
+  #sheet-canvas { width: 800px; background: #fff; color: #1e293b; margin: 0 auto; text-align: left; padding: 30px; border: 8px solid #0f172a; position: relative; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; font-family: "Hiragino Mincho ProN", serif; }
+  .sheet-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 4px double #0f172a; padding-bottom: 10px; margin-bottom: 10px; }
+  .sheet-title { font-size: 2rem; font-weight: 900; }
+  .sheet-flex { display: flex; gap: 20px; align-items: stretch; }
+  .sheet-box { flex: 1; border: 2px solid #0f172a; padding: 15px; border-radius: 4px; background: #f8fafc; position: relative; }
+  .sheet-label { position: absolute; top: -12px; left: 10px; background: #0f172a; color: #fff; padding: 2px 10px; font-size: 0.8rem; font-weight: bold; border-radius: 4px; }
+  .sheet-pc-name { font-size: 1.8rem; font-weight: bold; border-bottom: 2px solid #cbd5e1; margin-bottom: 5px; margin-top: 5px;}
+  .sheet-stand-name { font-size: 1.6rem; font-weight: bold; color: #7c3aed; border-bottom: 2px solid #e9d5ff; margin-bottom: 5px; margin-top: 5px;}
+  .sheet-param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-weight: bold; background: #fff; padding: 10px; border: 1px solid #e2e8f0; margin-top: 10px; }
+  .type-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; color: #fff; font-size: 0.75rem; margin-right: 5px; font-weight: bold; }
+  .tag-form { background: #475569; } .tag-perf { background: #7c3aed; }
+
+  /* トースト */
+  #toast { visibility: hidden; min-width: 250px; background-color: var(--success); color: #fff; text-align: center; border-radius: 4px; padding: 16px; position: fixed; z-index: 99; left: 50%; bottom: 30px; transform: translateX(-50%); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+  #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+  @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+  @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <button class="help-btn" onclick="document.getElementById('helpModal').style.display='block'">?</button>
+  <h1>JOJO TRPG 作成</h1>
+
+  <div class="manager-panel">
+    <label style="margin:0; color:var(--text-main); background:none; border:none;">DATA:</label>
+    <select id="char-list" class="char-list"><option value="">(新規作成)</option></select>
+    <button class="btn btn-save" onclick="saveToBrowser()">保存</button>
+    <button class="btn btn-load" onclick="loadFromBrowser()">読込</button>
+    <button class="btn btn-del" onclick="deleteFromBrowser()">削除</button>
+    <div style="flex-grow:1;"></div>
+    <button class="btn btn-neutral" onclick="downloadJSON()">↓ JSON出力</button>
+    <button class="btn btn-neutral" onclick="document.getElementById('file-input').click()">↑ 読込</button>
+    <input type="file" id="file-input" style="display:none;" onchange="uploadJSON(this)">
+  </div>
+
+  <div class="tab-menu">
+    <div class="tab-btn active" onclick="switchTab('tab-stats', this)">① ステータス</div>
+    <div class="tab-btn" onclick="switchTab('tab-settings', this)">② 詳細設定</div>
+    <div class="tab-btn" onclick="switchTab('tab-share', this)">③ 出力・共有</div>
+  </div>
+
+  <div id="tab-stats" class="tab-content active">
+    <div style="text-align:center; margin-bottom:15px; font-weight:bold; background:#e0f2fe; padding:10px; border-radius:8px; border:2px solid #bae6fd;">
+      残り技能P: <span id="skill-rem" style="color:var(--accent-gold); font-size:1.4rem;">5</span> / <span id="skill-max">5</span>
+    </div>
+
+    <div class="row">
+      <div class="col" style="flex:2;"><label>名前</label><input type="text" id="pc-name" placeholder="例：空条 承太郎"></div>
+      <div class="col"><label>年齢</label><input type="number" id="pc-age" value="17" min="0" onchange="calcAll()"></div>
+      <div class="col"><label>職業</label><input type="text" id="pc-job" placeholder="例：学生"></div>
+    </div>
+    <div id="aging-info" style="font-size:0.9rem; color:var(--accent-gold); text-align:right; margin-top:-10px; margin-bottom:10px; font-weight:bold;"></div>
+    
+    <div class="status-container">
+      <div class="status-box hp-style">
+        <span class="status-label">HP (耐久力)</span>
+        <span class="status-val" id="hp-val">0</span>
+        <span class="status-sub">(Body+Mental)×2</span>
+      </div>
+      <div class="status-box sp-style">
+        <span class="status-label">SP (魂値)</span>
+        <span class="status-val" id="sp-val">0</span>
+        <span class="status-sub">(Intelli+Mental)×5</span>
+      </div>
+      <div class="status-box stp-style" id="stp-container">
+        <span class="status-label">STP (Energy)</span>
+        <span class="status-val" id="stp-val">0</span>
+        <span class="status-sub">(Mental+持続)×5</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col attr-block">
+        <div class="attr-header"><span>ボディ</span><input type="number" id="body" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-row"><label>運動</label><input type="number" class="skill-val" data-attr="body" data-name="運動" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>格闘</label><input type="number" class="skill-val" data-attr="body" data-name="格闘" value="0" min="0" max="3" onchange="calcAll()"></div>
+      </div>
+      <div class="col attr-block">
+        <div class="attr-header"><span>センス</span><input type="number" id="sense" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-row"><label>目星</label><input type="number" class="skill-val" data-attr="sense" data-name="目星" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>隠密</label><input type="number" class="skill-val" data-attr="sense" data-name="隠密" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>手業</label><input type="number" class="skill-val" data-attr="sense" data-name="手業" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>操縦</label><input type="number" class="skill-val" data-attr="sense" data-name="操縦" value="0" min="0" max="3" onchange="calcAll()"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col attr-block">
+        <div class="attr-header"><span>インテリ</span><input type="number" id="intelli" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-row"><label>博識</label><input type="number" class="skill-val" data-attr="intelli" data-name="博識" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>医学</label><input type="number" class="skill-val" data-attr="intelli" data-name="医学" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>機械</label><input type="number" class="skill-val" data-attr="intelli" data-name="機械" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>分析</label><input type="number" class="skill-val" data-attr="intelli" data-name="分析" value="0" min="0" max="3" onchange="calcAll()"></div>
+      </div>
+      <div class="col attr-block">
+        <div class="attr-header"><span>メンタル</span><input type="number" id="mental" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-row"><label>話術</label><input type="number" class="skill-val" data-attr="mental" data-name="話術" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>威圧</label><input type="number" class="skill-val" data-attr="mental" data-name="威圧" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="skill-row"><label>洞察</label><input type="number" class="skill-val" data-attr="mental" data-name="洞察" value="0" min="0" max="3" onchange="calcAll()"></div>
+      </div>
+    </div>
+    
+    <div class="row" style="margin-top:15px;">
+      <div class="col"><label>所持品・アイテム</label><textarea id="pc-items" placeholder="例：スマホ、財布、ロープ..." style="height:60px;"></textarea></div>
+    </div>
+
+    <button class="awake-btn" onclick="awakeStand()">矢に貫かれる🏹（スタンド発現）</button>
+    
+    <div id="stand-section">
+      <h2 style="color:var(--accent); border-bottom:2px solid var(--accent); margin-top:0;">▼ STAND PARAMETERS</h2>
+      <div id="stand-age-warn" style="color:var(--danger); font-size:0.9rem; font-weight:bold; margin-bottom:10px;"></div>
+      
+      <div class="row">
+        <div class="col"><label>外見・分類</label>
+          <select id="stand-form">
+            <option value="人型・生物">人型 (生物・自然型)</option>
+            <option value="人型・機械">人型 (人工・機械型)</option>
+            <option value="非人型・生物">非人型 (生物・自然型)</option>
+            <option value="非人型・機械">非人型 (人工・機械型)</option>
+            <option value="装備・道具型">装備・道具型</option>
+            <option value="群体型">群体型</option>
+            <option value="不定形">不定形</option>
+            <option value="ヴィジョン無し">ヴィジョン無し</option>
+          </select>
+        </div>
+        <div class="col"><label>性能タイプ</label>
+          <select id="stand-type">
+            <option value="近接タイプ">近接タイプ</option>
+            <option value="遠隔タイプ">遠隔タイプ</option>
+            <option value="現象タイプ">現象タイプ</option>
+            <option value="自動操縦タイプ">自動操縦タイプ</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col"><label>スタンド名</label><input type="text" id="stand-name" placeholder="例：スタープラチナ"></div>
+        <div class="col"><label>能力概要</label><input type="text" id="stand-ability" placeholder="例：時を止める"></div>
+      </div>
+      <label>ルール・制約</label><textarea id="stand-rule" rows="2"></textarea>
+      
+      <div class="row" style="margin-top:20px; align-items:center;">
+        <div class="col">
+          <div class="skill-row"><label>破壊力</label><select id="p-power" onchange="updateChart()"><option value="5">A (超スゴイ)</option><option value="4">B (スゴイ)</option><option value="3" selected>C (並)</option><option value="2">D (ニガテ)</option><option value="1">E (超ニガテ)</option></select></div>
+          <div class="skill-row"><label>スピード</label><select id="p-speed" onchange="updateChart()"><option value="5">A (神速)</option><option value="4">B (高速)</option><option value="3" selected>C (並)</option><option value="2">D (鈍い)</option><option value="1">E (遅い)</option></select></div>
+          <div class="skill-row"><label>射程距離</label><select id="p-range" onchange="updateChart()"><option value="5">A (超遠距離)</option><option value="4">B (50m程)</option><option value="3" selected>C (10m前後)</option><option value="2">D (5m以内)</option><option value="1">E (2m以内)</option></select></div>
+          <div class="skill-row" style="margin-bottom:12px;"><input type="text" id="stand-range-text" placeholder="有効射程 (例: 2m)" style="width:100%; text-align:left; font-size:0.9rem;"></div>
+          <div class="skill-row"><label>持続力</label><select id="p-durability" onchange="updateChart()"><option value="5">A (超持続)</option><option value="4">B (長い)</option><option value="3" selected>C (並)</option><option value="2">D (短い)</option><option value="1">E (一瞬)</option></select></div>
+          <div class="skill-row"><label>精密動作</label><select id="p-precision" onchange="updateChart()"><option value="5">A (機械以上)</option><option value="4">B (正確)</option><option value="3" selected>C (人間並)</option><option value="2">D (大雑把)</option><option value="1">E (皆無)</option></select></div>
+          <div class="skill-row"><label>成長性</label><select id="p-potential" onchange="updateChart()"><option value="5">A (激変)</option><option value="4">B (成長中)</option><option value="3" selected>C (安定)</option><option value="2">D (習熟)</option><option value="1">E (完成)</option></select></div>
+        </div>
+        <div class="col" style="max-width:350px; background:#fff; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+          <canvas id="standChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-settings" class="tab-content">
+    <div class="row">
+      <div class="col"><label>プレイヤー名</label><input type="text" id="pl-name"></div>
+      <div class="col"><label>一人称 / 口調</label><input type="text" id="pc-tone"></div>
+    </div>
+    <div class="row">
+      <div class="col"><label>こだわり (RP指針)</label><textarea id="pc-quirk" rows="3"></textarea></div>
+      <div class="col"><label>引力 (惹かれたもの)</label><textarea id="pc-hook" rows="3"></textarea></div>
+    </div>
+    <label>背景ストーリー・詳細設定</label>
+    <textarea id="pc-background" style="height:200px;"></textarea>
+  </div>
+
+  <div id="tab-share" class="tab-content">
+    <div class="export-actions">
+      <button class="btn btn-stand" style="font-size:1.1rem; padding:15px 30px;" onclick="generateImage()">📷 画像として保存</button>
+      <button class="btn btn-neutral" style="font-size:1.1rem; padding:15px 30px;" onclick="generateText()">📝 テキストをコピー</button>
+    </div>
+    
+    <div style="text-align:center; margin-bottom:20px; padding:15px; background:#e0f2fe; border-radius:8px; border:1px solid #bae6fd;">
+      <label style="color:var(--text-main); margin-bottom:10px; background:none; border:none; padding:0;">ココフォリア用クリップボード出力</label>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button class="btn btn-save" onclick="copyPC()">① 本体データをコピー</button>
+        <button class="btn btn-stand" onclick="copyStand()">② スタンドをコピー</button>
+      </div>
+    </div>
+
+    <p style="text-align:center; color:#64748b;">▼ 画像プレビュー ▼</p>
+    <div id="export-preview-area">
+      <div id="sheet-canvas">
+        <div class="sheet-header">
+          <div class="sheet-title">JOJO TRPG PROFILE</div>
+          <div class="sheet-logo">SPW FOUNDATION DATABASE</div>
+        </div>
+        <div class="sheet-flex">
+          <div class="sheet-box">
+            <span class="sheet-label">USER DATA</span>
+            <div class="sheet-pc-name" id="out-pc-name">NO NAME</div>
+            <div style="font-size:0.9rem; margin-bottom:10px;">Age: <span id="out-pc-age" style="font-weight:bold;">--</span> / Job: <span id="out-pc-job" style="font-weight:bold;">--</span></div>
+            <div style="background:#eee; padding:10px; border-radius:4px; margin-bottom:10px;"><div id="out-pc-stats" style="line-height:1.8; font-family:'Courier New', monospace;"></div></div>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+              <div style="flex:1; border:2px solid var(--danger); background:#fff1f2; text-align:center; padding:5px; border-radius:4px; font-weight:bold; color:var(--danger);">HP: <span id="out-hp-val" style="font-size:1.2rem;">0</span></div>
+              <div style="flex:1; border:2px solid var(--spirit); background:#f3e8ff; text-align:center; padding:5px; border-radius:4px; font-weight:bold; color:var(--spirit);">SP: <span id="out-sp-val" style="font-size:1.2rem;">0</span></div>
+              <div id="out-stp-box" style="flex:1; border:2px solid var(--success); background:#ecfdf5; text-align:center; padding:5px; border-radius:4px; font-weight:bold; color:var(--success); display:none;">STP: <span id="out-stp-val" style="font-size:1.2rem;">0</span></div>
+            </div>
+            <div style="font-size:0.85rem; margin-bottom:8px;"><strong>[所持品]</strong><br><span id="out-pc-items"></span></div>
+            <div style="font-size:0.85rem; margin-bottom:8px;"><strong>[こだわり]</strong><br><span id="out-pc-quirk"></span></div>
+            <div style="font-size:0.85rem;"><strong>[引力]</strong><br><span id="out-pc-hook"></span></div>
+          </div>
+          <div class="sheet-box">
+            <span class="sheet-label">STAND DATA</span>
+            <div class="sheet-stand-name" id="out-stand-name">---</div>
+            <div style="margin-bottom:10px;"><span id="out-stand-form" class="type-tag tag-form"></span><span id="out-stand-type" class="type-tag tag-perf"></span></div>
+            <div style="font-size:0.9rem; margin-bottom:10px;">能力: <span id="out-stand-ability" style="font-weight:bold;">---</span></div>
+            <div class="sheet-stand-visual"><canvas id="outChart"></canvas></div>
+            <div class="sheet-param-grid" id="out-stand-params"></div>
+            <div style="margin-top:10px; font-size:0.8rem; background:#eee; padding:5px; border-left:3px solid #7c3aed;"><strong>[ルール]</strong> <span id="out-stand-rule"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="helpModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('helpModal').style.display='none'">&times;</span>
+    <h2 style="text-align:center; color:var(--accent);">パラメータ用語集</h2>
+    <h3>破壊力 (Power)</h3>
+    <p>スタンド像の腕力や、物理的な攻撃力。Aで岩を砕き、Cで人間並み。特殊能力の威力とは別の場合がある。</p>
+    <h3>スピード (Speed)</h3>
+    <p>敏捷性や攻撃の手数。回避判定に使用する。<br><strong>※B以上ないと「ラッシュ（x3）」は使えない。</strong></p>
+    <h3>射程距離 (Range)</h3>
+    <p>スタンドが本体から離れられる距離又はスタンド自身で攻撃できる距離。能力の射程とは別。<br>E:2m(ラッシュ可) / D:5m(室内) / C:10m(中距離) / B:50m(遠距離) / A:それ以上</p>
+    <h3>持続力 (Durability)</h3>
+    <p>防御力や能力の持続時間。これが高いほど<strong>STP(スタンドパワー)</strong>が高くなり、長く戦える。</p>
+    <h3>精密動作性 (Precision)</h3>
+    <p>スタンド自体の手先の器用さ。能力のコントロール精度は本体の【センス】で判定する</p>
+    <h3>成長性 (Potential)</h3>
+    <p>伸びしろ。高いとセッション中に新能力に目覚める可能性がある</p>
+  </div>
+</div>
+
+<div id="toast">処理が完了しました</div>
+
+<script>
+  let maxSkillPoints = 5; let isAwake = false; let myChart = null; let outChartInst = null;
+  const STORAGE_KEY = 'jojo_trpg_db_v17_final';
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active'); btn.classList.add('active');
+    if(tabId === 'tab-share') updateExportView();
+  }
+
+  function calcAll() {
+    const age = parseInt(document.getElementById('pc-age').value) || 17;
+    let bonus=0, text="", warn="";
+    if (age>=80) { text="【超老年】(+8P)"; bonus=8; warn="※超老年ペナルティ：ボディ上限2 / スタンド破壊・速-2"; }
+    else if (age>=60) { text="【老年】(+5P)"; bonus=5; warn="※老年ペナルティ：ボディ上限3 / スタンド速・持続-1"; }
+    else if (age>=30) { text="【壮年】(+2P)"; bonus=2; }
+    document.getElementById('aging-info').innerText = text;
+    document.getElementById('stand-age-warn').innerText = warn;
+    maxSkillPoints = 5 + bonus;
+
+    const body = parseInt(document.getElementById('body').value)||0;
+    const sense = parseInt(document.getElementById('sense').value)||0;
+    const intelli = parseInt(document.getElementById('intelli').value)||0;
+    const mental = parseInt(document.getElementById('mental').value)||0;
+
+    const hp = (body + mental) * 2;
+    const sp = (intelli + mental) * 5;
+    document.getElementById('hp-val').innerText = hp;
+    document.getElementById('sp-val').innerText = sp;
+
+    const dur = isAwake ? parseInt(document.getElementById('p-durability').value) : 0;
+    const stp = (mental + dur) * 5;
+    document.getElementById('stp-val').innerText = stp;
+
+    let used = 0;
+    document.querySelectorAll('.skill-val').forEach(el => used += parseInt(el.value)||0);
+    const rem = maxSkillPoints - used;
+    const disp = document.getElementById('skill-rem');
+    disp.innerText = rem; document.getElementById('skill-max').innerText = maxSkillPoints;
+    disp.style.color = (rem < 0) ? '#ef4444' : '#d97706';
+  }
+
+  function awakeStand() {
+    isAwake = true; document.getElementById('stand-section').style.display = 'block';
+    document.querySelector('.awake-btn').style.display = 'none';
+    document.getElementById('stp-container').style.display = 'flex';
+    setTimeout(initChart, 100); calcAll();
+  }
+
+  function initChart() {
+    const ctx = document.getElementById('standChart').getContext('2d');
+    if(myChart) myChart.destroy();
+    myChart = new Chart(ctx, {
+      type: 'radar',
+      data: { labels: ['破壊', 'スピード', '射程', '持続', '精密', '成長'], datasets: [{ label: 'パラメータ', data: [3,3,3,3,3,3], backgroundColor: 'rgba(124, 58, 237, 0.2)', borderColor: '#7c3aed', pointBackgroundColor: '#fff', pointBorderColor: '#7c3aed', borderWidth: 2 }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5, ticks: { display: false, stepSize: 1 }, pointLabels: { font: { size: 12 }, color: '#333' } } }, plugins: { legend: { display: false } } }
+    });
+    updateChart();
+  }
+  function updateChart() {
+    if(!myChart) return;
+    const ids = ['p-power', 'p-speed', 'p-range', 'p-durability', 'p-precision', 'p-potential'];
+    myChart.data.datasets[0].data = ids.map(id => document.getElementById(id).value);
+    myChart.update(); calcAll();
+  }
+
+  function updateExportView() {
+    document.getElementById('out-pc-name').innerText = document.getElementById('pc-name').value || 'NO NAME';
+    document.getElementById('out-pc-age').innerText = document.getElementById('pc-age').value;
+    document.getElementById('out-pc-job').innerText = document.getElementById('pc-job').value;
+    document.getElementById('out-pc-quirk').innerText = document.getElementById('pc-quirk').value;
+    document.getElementById('out-pc-hook').innerText = document.getElementById('pc-hook').value;
+    document.getElementById('out-pc-items').innerText = document.getElementById('pc-items').value || '(なし)';
+    document.getElementById('out-hp-val').innerText = document.getElementById('hp-val').innerText;
+    document.getElementById('out-sp-val').innerText = document.getElementById('sp-val').innerText;
+    
+    const outStpBox = document.getElementById('out-stp-box');
+    if(isAwake) {
+      outStpBox.style.display = 'block';
+      document.getElementById('out-stp-val').innerText = document.getElementById('stp-val').innerText;
+    } else { outStpBox.style.display = 'none'; }
+
+    let statsHTML = "";
+    const attrs = {body:'ボディ', sense:'センス', intelli:'インテリ', mental:'メンタル'};
+    for(let key in attrs) {
+      const val = document.getElementById(key).value;
+      statsHTML += `<b>${attrs[key]}:${val}</b>`;
+      let skills = [];
+      document.querySelectorAll(`.skill-val[data-attr="${key}"]`).forEach(el => { if(el.value > 0) skills.push(`${el.getAttribute('data-name')}+${el.value}`); });
+      if(skills.length > 0) statsHTML += ` <small>(${skills.join(',')})</small>`;
+      statsHTML += "<br>";
+    }
+    document.getElementById('out-pc-stats').innerHTML = statsHTML;
+
+    if(isAwake) {
+        document.getElementById('out-stand-name').innerText = document.getElementById('stand-name').value;
+        document.getElementById('out-stand-ability').innerText = document.getElementById('stand-ability').value;
+        document.getElementById('out-stand-rule').innerText = document.getElementById('stand-rule').value;
+        const sForm = document.getElementById('stand-form').value;
+        const sType = document.getElementById('stand-type').value;
+        document.getElementById('out-stand-form').innerText = sForm;
+        document.getElementById('out-stand-type').innerText = sType;
+        
+        const ids = ['p-power', 'p-speed', 'p-range', 'p-durability', 'p-precision', 'p-potential'];
+        const labels = ['破壊', '速', '射程', '持続', '精密', '成長'];
+        const ranks = ['?','E','D','C','B','A'];
+        const rangeText = document.getElementById('stand-range-text').value;
+        let paramHTML = "";
+        ids.forEach((id, idx) => {
+          const val = document.getElementById(id).value;
+          const color = (val >= 4) ? '#7c3aed' : (val <= 1) ? '#ef4444' : '#333';
+          let suffix = (id === 'p-range' && rangeText) ? ` <span style="font-size:0.8rem;">(${rangeText})</span>` : "";
+          paramHTML += `<div style="color:${color}">${labels[idx]}: ${ranks[val]}${suffix}</div>`;
+        });
+        document.getElementById('out-stand-params').innerHTML = paramHTML;
+
+        const ctx = document.getElementById('outChart').getContext('2d');
+        if(outChartInst) outChartInst.destroy();
+        let dataValues = [3,3,3,3,3,3]; if(myChart) dataValues = myChart.data.datasets[0].data;
+        outChartInst = new Chart(ctx, { type: 'radar', data: { labels: ['破壊', '速', '射程', '持続', '精密', '成長'], datasets: [{ label: 'Stand', data: dataValues, backgroundColor: 'rgba(124, 58, 237, 0.1)', borderColor: '#7c3aed', pointBackgroundColor: '#7c3aed', borderWidth: 3 }] }, options: { animation: false, scales: { r: { min: 0, max: 5, ticks: { display: false }, pointLabels: { font: { size: 14, weight:'bold' }, color: '#0f172a' }, grid: { color: '#cbd5e1' } } }, plugins: { legend: { display: false } } } });
+    } else {
+        document.getElementById('out-stand-name').innerText = "（未発現）";
+        document.getElementById('out-stand-ability').innerText = "-";
+        document.getElementById('out-stand-params').innerHTML = "";
+        if(outChartInst) { outChartInst.destroy(); outChartInst = null; }
+    }
+  }
+
+  function generateImage() {
+    updateExportView(); const target = document.getElementById('sheet-canvas');
+    setTimeout(() => { html2canvas(target, { scale: 2, backgroundColor: "#ffffff", logging: false }).then(canvas => { const link = document.createElement('a'); link.href = canvas.toDataURL('image/png'); link.download = `jojo_sheet_${document.getElementById('pc-name').value || 'char'}.png`; link.click(); showToast("画像を保存しました"); }); }, 200);
+  }
+  function showToast(msg) { const t = document.getElementById("toast"); t.innerText = msg; t.className = "show"; setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000); }
+  function safeCopy(text) { const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.left = "-9999px"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); try { document.execCommand('copy'); showToast("クリップボードにコピーしました！"); } catch (err) { showToast("コピー失敗"); } document.body.removeChild(textArea); }
+  function generateText() {
+    let text = `【ジョジョTRPG】\n名前：${document.getElementById('pc-name').value}\nHP:${document.getElementById('hp-val').innerText} / SP:${document.getElementById('sp-val').innerText} / STP:${document.getElementById('stp-val').innerText}\n所持品：${document.getElementById('pc-items').value.replace(/\n/g, ', ')}\n----------------\n`;
+    if(isAwake) { text += `スタンド：${document.getElementById('stand-name').value}\nタイプ：${document.getElementById('stand-form').value} / ${document.getElementById('stand-type').value}\n能力：${document.getElementById('stand-ability').value}\n----------------\n`; }
+    navigator.clipboard.writeText(text).then(() => alert('コピー完了'));
+  }
+
+  function copyPC() {
+    const stats = { body: parseInt(document.getElementById('body').value), sense: parseInt(document.getElementById('sense').value), intelli: parseInt(document.getElementById('intelli').value), mental: parseInt(document.getElementById('mental').value) };
+    let commands = `// ---本体判定---\n${stats.body}d6>=5 【ボディ】\n${stats.sense}d6>=5 【センス】\n${stats.intelli}d6>=5 【インテリ】\n${stats.mental}d6>=5 【メンタル】\n\n// ---技能---\n`;
+    document.querySelectorAll('.skill-val').forEach(el => { const val = parseInt(el.value); if(val > 0) commands += `${stats[el.getAttribute('data-attr')] + val}d6>=5 技能:【${el.getAttribute('data-name')}】\n`; });
+    const memo = `職業: ${document.getElementById('pc-job').value}\n\n【所持品】\n${document.getElementById('pc-items').value}\n\n【こだわり】\n${document.getElementById('pc-quirk').value}`;
+    const statusArray = [
+        { label: "HP", value: parseInt(document.getElementById('hp-val').innerText), max: parseInt(document.getElementById('hp-val').innerText) },
+        { label: "SP", value: parseInt(document.getElementById('sp-val').innerText), max: parseInt(document.getElementById('sp-val').innerText) }
+    ];
+    if(isAwake) statusArray.push({ label: "STP", value: parseInt(document.getElementById('stp-val').innerText), max: parseInt(document.getElementById('stp-val').innerText) });
+    
+    const data = { kind: "character", data: { name: document.getElementById('pc-name').value || "PC", initiative: stats.sense, memo: memo, status: statusArray, params: [ {label:"体",value:stats.body.toString()},{label:"感",value:stats.sense.toString()},{label:"知",value:stats.intelli.toString()},{label:"精",value:stats.mental.toString()} ], commands: commands } };
+    safeCopy(JSON.stringify(data));
+  }
+
+  function copyStand() {
+    if(!isAwake) { showToast("スタンドが発現していません"); return; }
+    const params = ['p-power', 'p-speed', 'p-range', 'p-durability', 'p-precision', 'p-potential'].map(id => document.getElementById(id).value);
+    const ranks = ['?','E','D','C','B','A'];
+    
+    // ★ラッシュ制限ロジック★
+    const sForm = document.getElementById('stand-form').value;
+    const speedVal = parseInt(params[1]); // スピードの値(1~5)
+    let attackCmd = "【破壊力】攻撃";
+    
+    // 「人型」かつ「スピードB(4)以上」ならラッシュ解禁
+    if (sForm.includes("人型") && speedVal >= 4) {
+      attackCmd = "【破壊力】ラッシュ！(x3)";
+    }
+
+    const commands = `// ---スタンド判定---\n${params[0]}d6>=5 ${attackCmd}\n${params[1]}d6>=5 【スピード】回避\n${params[2]}d6>=5 【射程】\n${params[4]}d6>=5 【精密】\n${params[5]}d6>=5 【成長】\n`;
+    const sType = document.getElementById('stand-type').value;
+    const rangeText = document.getElementById('stand-range-text').value;
+    
+    let rangeDisp = ranks[params[2]];
+    if(rangeText) rangeDisp += `(${rangeText})`;
+
+    const memo = `分類: ${sForm} / ${document.getElementById('stand-type').value}\n能力: ${document.getElementById('stand-ability').value}\n\n破壊:${ranks[params[0]]} 速:${ranks[params[1]]} 射程:${rangeDisp}\n持続:${ranks[params[3]]} 精密:${ranks[params[4]]} 成長:${ranks[params[5]]}`;
+
+    const data = {
+      kind: "character",
+      data: {
+        name: document.getElementById('stand-name').value || "スタンド",
+        initiative: parseInt(params[1]), // スピード
+        memo: memo,
+        params: [ {label:"破壊",value:params[0]}, {label:"速",value:params[1]} ],
+        commands: commands
+      }
+    };
+    safeCopy(JSON.stringify(data));
+  }
+
+  // --- 保存・読込システム ---
+  function getAllData() { const data = {}; document.querySelectorAll('input, select, textarea').forEach(el => { if(el.id && el.type !== 'file' && el.id !== 'char-list') data[el.id] = el.value; }); data.isAwake = isAwake; return data; }
+  function setAllData(data) { if(!data) return; Object.keys(data).forEach(key => { const el = document.getElementById(key); if(el) el.value = data[key]; }); if(data.isAwake) { awakeStand(); } else { document.getElementById('stand-section').style.display = 'none'; document.querySelector('.awake-btn').style.display = 'block'; isAwake = false; document.getElementById('stp-container').style.display = 'none'; } calcAll(); if(isAwake) setTimeout(updateChart, 200); }
+  function saveToBrowser() { const name = document.getElementById('pc-name').value || 'NoName'; const allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; allData[name] = getAllData(); localStorage.setItem(STORAGE_KEY, JSON.stringify(allData)); updateList(); showToast(`「${name}」を保存しました`); }
+  function loadFromBrowser() { const name = document.getElementById('char-list').value; if(!name)return; setAllData(JSON.parse(localStorage.getItem(STORAGE_KEY))[name]); showToast("読み込みました"); }
+  function deleteFromBrowser() { const name = document.getElementById('char-list').value; if(!name||!confirm(`「${name}」を削除しますか？`)) return; const allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; delete allData[name]; localStorage.setItem(STORAGE_KEY, JSON.stringify(allData)); updateList(); showToast("削除しました"); }
+  function updateList() { const list = document.getElementById('char-list'); const allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; list.innerHTML = '<option value="">(選択してください)</option>'; Object.keys(allData).forEach(name => { const opt = document.createElement('option'); opt.value = name; opt.innerText = name; list.appendChild(opt); }); }
+  function downloadJSON() { const data = getAllData(); const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `jojo_${data['pc-name'] || 'char'}.json`; a.click(); }
+  function uploadJSON(input) { if(input.files.length===0) return; const reader = new FileReader(); reader.onload = function(e){ try { setAllData(JSON.parse(e.target.result)); showToast("JSONファイルを読み込みました"); } catch(err) { alert("ファイル形式が正しくありません"); } }; reader.readAsText(input.files[0]); }
+
+  window.addEventListener('DOMContentLoaded', () => { calcAll(); updateList(); });
+  window.onclick = function(event) { if (event.target == document.getElementById('helpModal')) document.getElementById('helpModal').style.display = "none"; }
+</script>
+
+</body>
+</html>
