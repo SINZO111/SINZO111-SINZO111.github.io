@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ジョジョTRPG 作成 </title>
+<title>ジョジョTRPGシート</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
@@ -12,6 +12,8 @@
     --bg-main: #f0f9ff; --bg-panel: #e0f2fe; --text-main: #1e293b;
     --accent: #9333ea; --accent-gold: #d97706; --border: #cbd5e1;
     --danger: #ef4444; --spirit: #7e22ce; --stand-p: #10b981; --success: #10b981;
+    --growth-bg: #dcfce7;
+    --init-color: #3b82f6;
     --container-bg: #ffffff; --input-bg: #ffffff; --input-text: #0f172a;
   }
   * { box-sizing: border-box; }
@@ -44,7 +46,9 @@
   .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
   .close:hover { color: black; }
   .modal h3 { border-left: 4px solid var(--accent); padding-left: 10px; color: var(--accent); margin-top: 20px; }
-  .modal p { font-size: 0.9rem; line-height: 1.6; color: #333; }
+  .modal ul { list-style-type: square; padding-left: 20px; line-height: 1.8; }
+  .modal li { margin-bottom: 5px; }
+  .modal strong { color: var(--text-main); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
 
   /* 管理パネル */
   .manager-panel { background: var(--bg-panel); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border: 2px solid #bae6fd; }
@@ -76,14 +80,47 @@
   .hp-style { background: #fff1f2; color: var(--danger); border: 3px solid var(--danger); }
   .sp-style { background: #f3e8ff; color: var(--spirit); border: 3px solid var(--spirit); }
   .stp-style { background: #ecfdf5; color: var(--stand-p); border: 3px solid var(--stand-p); display: none; }
+  .init-style { background: #eff6ff; color: var(--init-color); border: 3px solid var(--init-color); }
+
+  /* 技能ポイント管理 */
+  .skill-point-box {
+    text-align:center; margin-bottom:15px; font-weight:bold; background:#e0f2fe; padding:15px; border-radius:8px; border:2px solid #bae6fd;
+    display: flex; flex-direction: column; gap: 5px; align-items: center;
+  }
+  .sp-counter { font-size: 1.2rem; }
+  .sp-counter span { font-size: 1.6rem; color: var(--accent-gold); }
+  .sp-extra { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; background: #fff; padding: 5px 10px; border-radius: 6px; border: 1px solid #bae6fd; }
+  .sp-extra input { width: 60px; text-align: center; padding: 5px; margin: 0; }
+  .sp-cost-info { font-size: 0.8rem; color: #64748b; background: #fff; padding: 5px 10px; border-radius: 12px; border: 1px solid #e2e8f0; }
 
   /* 能力値ブロック */
-  .attr-block { background: #f8fafc; border: 2px solid var(--border); padding: 15px; border-radius: 8px; }
+  .attr-block { background: #f8fafc; border: 2px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 10px; }
   .attr-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 15px; }
   .attr-header span { font-size: 1.1rem; font-weight: bold; color: var(--text-main); }
   .attr-header input { width: 70px; text-align: center; font-size: 1.2rem; font-weight: bold; background: #fff; border-color: var(--accent); color: var(--text-main); }
+  
   .skill-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9rem; }
-  .skill-row input { width: 60px; text-align: center; padding: 5px; }
+  .skill-row label { flex-grow: 1; border: none; background: none; padding: 0; margin: 0; color: var(--text-main); font-weight: normal; cursor: pointer; }
+  .skill-inputs { display: flex; align-items: center; gap: 4px; }
+  .skill-base { width: 40px; text-align: center; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; }
+  .skill-growth { width: 40px; text-align: center; padding: 4px; border: 1px solid #10b981; background-color: var(--growth-bg); border-radius: 4px; color: #047857; font-weight: bold; }
+  
+  .skill-sub-name { width: 90px !important; text-align: left !important; font-size: 0.8rem; border-bottom: 1px solid #999; border-top:none; border-left:none; border-right:none; background:transparent; padding:0 5px; }
+  .skill-header-row { display: flex; justify-content: flex-end; font-size: 0.7rem; color: #64748b; margin-bottom: 5px; padding-right: 5px; }
+  .skill-header-item { width: 40px; text-align: center; }
+
+  /* 独自技能用スタイル */
+  .custom-skill-row { flex-wrap: wrap; }
+  .custom-inputs-wrapper { flex-grow: 1; display: flex; gap: 5px; align-items: center; }
+  .custom-name { width: 110px; font-size: 0.9rem; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; }
+  .custom-attr { width: 50px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.8rem; background: #fff; }
+
+  /* スタンドパラメータ入力欄 */
+  .stand-param-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+  .stand-param-row label { flex-grow: 1; font-weight: bold; color: #333; border: none; background: none; padding: 0; }
+  .stand-inputs { display: flex; align-items: center; gap: 5px; }
+  .stand-base { width: 110px; padding: 5px; font-size: 0.9rem; }
+  .stand-growth { width: 50px; text-align: center; padding: 5px; border: 2px solid #10b981; background-color: var(--growth-bg); border-radius: 4px; color: #047857; font-weight: bold; }
 
   /* スタンド */
   .awake-btn { width: 100%; padding: 20px; background: linear-gradient(135deg, #7c3aed, #9333ea); color: #fff; font-size: 1.3rem; font-weight: bold; border: none; cursor: pointer; margin: 30px 0; border-radius: 12px; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4); transition: transform 0.2s; }
@@ -115,7 +152,7 @@
 
 <div class="container">
   <button class="help-btn" onclick="document.getElementById('helpModal').style.display='block'">?</button>
-  <h1>JOJO TRPG 作成</h1>
+  <h1>JOJO TRPG SHEET</h1>
 
   <div class="manager-panel">
     <label style="margin:0; color:var(--text-main); background:none; border:none;">DATA:</label>
@@ -136,14 +173,24 @@
   </div>
 
   <div id="tab-stats" class="tab-content active">
-    <div style="text-align:center; margin-bottom:15px; font-weight:bold; background:#e0f2fe; padding:10px; border-radius:8px; border:2px solid #bae6fd;">
-      残り技能P: <span id="skill-rem" style="color:var(--accent-gold); font-size:1.4rem;">5</span> / <span id="skill-max">5</span>
+    <!-- 技能ポイント管理 -->
+    <div class="skill-point-box">
+      <div class="sp-counter">
+        残り技能P: <span id="skill-rem">20</span> / <span id="skill-max">20</span>
+      </div>
+      <div class="sp-cost-info">
+        Lv上限:3 (コスト: Lv1=1pt / Lv2=5pt / Lv3=10pt)
+      </div>
+      <div class="sp-extra">
+        <label style="border:none;background:none;padding:0;margin:0;">ボーナスP:</label>
+        <input type="number" id="bonus-points" value="0" min="0" onchange="calcAll()" placeholder="0" style="width:50px;text-align:center;">
+      </div>
     </div>
 
     <div class="row">
-      <div class="col" style="flex:2;"><label>名前</label><input type="text" id="pc-name" placeholder="例：空条 承太郎"></div>
-      <div class="col"><label>年齢</label><input type="number" id="pc-age" value="17" min="0" onchange="calcAll()"></div>
-      <div class="col"><label>職業</label><input type="text" id="pc-job" placeholder="例：学生"></div>
+      <div class="col" style="flex:2;"><label>名前</label><input type="text" id="pc-name" placeholder="例：ジョニィ・ジョースター"></div>
+      <div class="col"><label>年齢</label><input type="number" id="pc-age" value="19" min="0" onchange="calcAll()"></div>
+      <div class="col"><label>職業</label><input type="text" id="pc-job" placeholder="例：騎手"></div>
     </div>
     <div id="aging-info" style="font-size:0.9rem; color:var(--accent-gold); text-align:right; margin-top:-10px; margin-bottom:10px; font-weight:bold;"></div>
     
@@ -151,59 +198,155 @@
       <div class="status-box hp-style">
         <span class="status-label">HP (耐久力)</span>
         <span class="status-val" id="hp-val">0</span>
-        <span class="status-sub">(Body+Mental)×2</span>
+        <span class="status-sub">(体+精)×2</span>
       </div>
       <div class="status-box sp-style">
         <span class="status-label">SP (魂値)</span>
         <span class="status-val" id="sp-val">0</span>
-        <span class="status-sub">(Intelli+Mental)×5</span>
+        <span class="status-sub">(知+精)×5</span>
       </div>
       <div class="status-box stp-style" id="stp-container">
         <span class="status-label">STP (Energy)</span>
         <span class="status-val" id="stp-val">0</span>
-        <span class="status-sub">(Mental+持続)×5</span>
+        <span class="status-sub">(精+持続)×5</span>
+      </div>
+      <div class="status-box init-style">
+        <span class="status-label">INIT (行動順)</span>
+        <span class="status-val" id="init-val">0</span>
+        <span class="status-sub" id="init-label">体+運動</span>
       </div>
     </div>
 
+    <!-- 本体ステータス（6種） -->
     <div class="row">
       <div class="col attr-block">
-        <div class="attr-header"><span>ボディ</span><input type="number" id="body" value="1" min="1" max="10" onchange="calcAll()"></div>
-        <div class="skill-row"><label>運動</label><input type="number" class="skill-val" data-attr="body" data-name="運動" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>格闘</label><input type="number" class="skill-val" data-attr="body" data-name="格闘" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="attr-header"><span>ボディ(体)</span><input type="number" id="body" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-header-row"><div class="skill-header-item">技能P</div><div class="skill-header-item">成長</div></div>
+        <div class="skill-row"><label>運動</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="body" data-name="運動" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>格闘</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="body" data-name="格闘" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>耐久</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="body" data-name="耐久" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>乗馬</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="body" data-name="乗馬" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
       </div>
       <div class="col attr-block">
-        <div class="attr-header"><span>センス</span><input type="number" id="sense" value="1" min="1" max="10" onchange="calcAll()"></div>
-        <div class="skill-row"><label>目星</label><input type="number" class="skill-val" data-attr="sense" data-name="目星" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>隠密</label><input type="number" class="skill-val" data-attr="sense" data-name="隠密" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>手業</label><input type="number" class="skill-val" data-attr="sense" data-name="手業" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>操縦</label><input type="number" class="skill-val" data-attr="sense" data-name="操縦" value="0" min="0" max="3" onchange="calcAll()"></div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col attr-block">
-        <div class="attr-header"><span>インテリ</span><input type="number" id="intelli" value="1" min="1" max="10" onchange="calcAll()"></div>
-        <div class="skill-row"><label>博識</label><input type="number" class="skill-val" data-attr="intelli" data-name="博識" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>医学</label><input type="number" class="skill-val" data-attr="intelli" data-name="医学" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>機械</label><input type="number" class="skill-val" data-attr="intelli" data-name="機械" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>分析</label><input type="number" class="skill-val" data-attr="intelli" data-name="分析" value="0" min="0" max="3" onchange="calcAll()"></div>
-      </div>
-      <div class="col attr-block">
-        <div class="attr-header"><span>メンタル</span><input type="number" id="mental" value="1" min="1" max="10" onchange="calcAll()"></div>
-        <div class="skill-row"><label>話術</label><input type="number" class="skill-val" data-attr="mental" data-name="話術" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>威圧</label><input type="number" class="skill-val" data-attr="mental" data-name="威圧" value="0" min="0" max="3" onchange="calcAll()"></div>
-        <div class="skill-row"><label>洞察</label><input type="number" class="skill-val" data-attr="mental" data-name="洞察" value="0" min="0" max="3" onchange="calcAll()"></div>
+        <div class="attr-header"><span>センス(感)</span><input type="number" id="sense" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-header-row"><div class="skill-header-item">技能P</div><div class="skill-header-item">成長</div></div>
+        <div class="skill-row"><label>目星</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="sense" data-name="目星" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>隠密</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="sense" data-name="隠密" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>手業</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="sense" data-name="手業" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>射撃</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="sense" data-name="射撃" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>操縦:<input type="text" id="drive-text" class="skill-sub-name" placeholder="車/機"></label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="sense" data-name="操縦" data-sub="drive-text" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
       </div>
     </div>
     
-    <div class="row" style="margin-top:15px;">
-      <div class="col"><label>所持品・アイテム</label><textarea id="pc-items" placeholder="例：スマホ、財布、ロープ..." style="height:60px;"></textarea></div>
+    <div class="row">
+      <div class="col attr-block">
+        <div class="attr-header"><span>インテリ(知)</span><input type="number" id="intelli" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-header-row"><div class="skill-header-item">技能P</div><div class="skill-header-item">成長</div></div>
+        <div class="skill-row"><label>医学</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="intelli" data-name="医学" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>分析</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="intelli" data-name="分析" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>調査</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="intelli" data-name="調査" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>知識:<input type="text" id="know1-text" class="skill-sub-name" placeholder="生物学等"></label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="intelli" data-name="知識" data-sub="know1-text" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>知識:<input type="text" id="know2-text" class="skill-sub-name" placeholder="物理学等"></label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="intelli" data-name="知識" data-sub="know2-text" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+      </div>
+      <div class="col attr-block">
+        <div class="attr-header"><span>メンタル(精)</span><input type="number" id="mental" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-header-row"><div class="skill-header-item">技能P</div><div class="skill-header-item">成長</div></div>
+        <div class="skill-row"><label>洞察</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="mental" data-name="洞察" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>オカルト</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="mental" data-name="オカルト" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>意志</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="mental" data-name="意志" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+      </div>
     </div>
 
+    <!-- 追加ステータス -->
+    <div class="row">
+      <div class="col attr-block">
+        <div class="attr-header"><span>チャーム(魅)</span><input type="number" id="charm" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-header-row"><div class="skill-header-item">技能P</div><div class="skill-header-item">成長</div></div>
+        <div class="skill-row"><label>交渉</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="charm" data-name="交渉" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>威圧</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="charm" data-name="威圧" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>尋問</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="charm" data-name="尋問" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>詐欺</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="charm" data-name="詐欺" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>芸術:<input type="text" id="art-text" class="skill-sub-name" placeholder="漫画等"></label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="charm" data-name="芸術" data-sub="art-text" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+      </div>
+      <div class="col attr-block">
+        <div class="attr-header"><span>ラック(運)</span><input type="number" id="luck" value="1" min="1" max="10" onchange="calcAll()"></div>
+        <div class="skill-header-row"><div class="skill-header-item">技能P</div><div class="skill-header-item">成長</div></div>
+        <div class="skill-row"><label>直感</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="luck" data-name="直感" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>賭博</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="luck" data-name="賭博" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+        <div class="skill-row"><label>強運</label><div class="skill-inputs"><input type="number" class="skill-base" data-attr="luck" data-name="強運" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv"><input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他"></div></div>
+      </div>
+    </div>
+    
+    <!-- 独自技能 -->
+    <div class="row">
+      <div class="col attr-block" style="flex-basis: 100%;">
+        <div class="attr-header"><span>独自技能 (Custom)</span></div>
+        <div class="skill-header-row" style="padding-right: 8px;">
+            <span style="margin-right: auto; padding-left: 5px; font-size: 0.7rem;">技能名 / 関連能力</span>
+            <div class="skill-header-item">技能P</div>
+            <div class="skill-header-item">成長</div>
+        </div>
+        
+        <div class="skill-row custom-skill-row">
+            <div class="custom-inputs-wrapper">
+                <input type="text" class="custom-name" placeholder="例: 波紋法">
+                <select class="custom-attr" onchange="calcAll()">
+                    <option value="body">体</option>
+                    <option value="sense">感</option>
+                    <option value="intelli">知</option>
+                    <option value="mental">精</option>
+                    <option value="charm">魅</option>
+                    <option value="luck">運</option>
+                </select>
+            </div>
+            <div class="skill-inputs">
+                <input type="number" class="skill-base custom-base" data-is-custom="true" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv">
+                <input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他">
+            </div>
+        </div>
+        <div class="skill-row custom-skill-row">
+            <div class="custom-inputs-wrapper">
+                <input type="text" class="custom-name" placeholder="例: 鉄球">
+                <select class="custom-attr" onchange="calcAll()">
+                    <option value="body">体</option>
+                    <option value="sense">感</option>
+                    <option value="intelli">知</option>
+                    <option value="mental">精</option>
+                    <option value="charm">魅</option>
+                    <option value="luck">運</option>
+                </select>
+            </div>
+            <div class="skill-inputs">
+                <input type="number" class="skill-base custom-base" data-is-custom="true" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv">
+                <input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他">
+            </div>
+        </div>
+        <div class="skill-row custom-skill-row">
+            <div class="custom-inputs-wrapper">
+                <input type="text" class="custom-name" placeholder="自由記入">
+                <select class="custom-attr" onchange="calcAll()">
+                    <option value="body">体</option>
+                    <option value="sense">感</option>
+                    <option value="intelli">知</option>
+                    <option value="mental">精</option>
+                    <option value="charm">魅</option>
+                    <option value="luck">運</option>
+                </select>
+            </div>
+            <div class="skill-inputs">
+                <input type="number" class="skill-base custom-base" data-is-custom="true" value="0" min="0" max="3" onchange="calcAll()" placeholder="Lv">
+                <input type="number" class="skill-growth" value="0" min="0" onchange="calcAll()" placeholder="他">
+            </div>
+        </div>
+      </div>
+    </div>
+    
     <button class="awake-btn" onclick="awakeStand()">矢に貫かれる🏹（スタンド発現）</button>
     
     <div id="stand-section">
       <h2 style="color:var(--accent); border-bottom:2px solid var(--accent); margin-top:0;">▼ STAND PARAMETERS</h2>
-      <div id="stand-age-warn" style="color:var(--danger); font-size:0.9rem; font-weight:bold; margin-bottom:10px;"></div>
+      <div id="stand-age-warn" style="color:var(--danger); font-size:0.9rem; font-weight:bold; margin-bottom:10px;">KPから指示があるまで入力しないでください。</div>
+      <div style="text-align:right; font-size:0.8rem; color:#666; margin-top:-15px; margin-bottom:10px;">[ランク] + [成長値]</div>
       
       <div class="row">
         <div class="col"><label>外見・分類</label>
@@ -229,20 +372,57 @@
       </div>
 
       <div class="row">
-        <div class="col"><label>スタンド名</label><input type="text" id="stand-name" placeholder="例：スタープラチナ"></div>
-        <div class="col"><label>能力概要</label><input type="text" id="stand-ability" placeholder="例：時を止める"></div>
+        <div class="col"><label>スタンド名</label><input type="text" id="stand-name" placeholder="例：マジシャンズレッド"></div>
+        <div class="col"><label>能力概要</label><input type="text" id="stand-ability" placeholder="例：炎を操る"></div>
       </div>
       <label>ルール・制約</label><textarea id="stand-rule" rows="2"></textarea>
       
       <div class="row" style="margin-top:20px; align-items:center;">
         <div class="col">
-          <div class="skill-row"><label>破壊力</label><select id="p-power" onchange="updateChart()"><option value="5">A (超スゴイ)</option><option value="4">B (スゴイ)</option><option value="3" selected>C (並)</option><option value="2">D (ニガテ)</option><option value="1">E (超ニガテ)</option></select></div>
-          <div class="skill-row"><label>スピード</label><select id="p-speed" onchange="updateChart()"><option value="5">A (神速)</option><option value="4">B (高速)</option><option value="3" selected>C (並)</option><option value="2">D (鈍い)</option><option value="1">E (遅い)</option></select></div>
-          <div class="skill-row"><label>射程距離</label><select id="p-range" onchange="updateChart()"><option value="5">A (超遠距離)</option><option value="4">B (50m程)</option><option value="3" selected>C (10m前後)</option><option value="2">D (5m以内)</option><option value="1">E (2m以内)</option></select></div>
-          <div class="skill-row" style="margin-bottom:12px;"><input type="text" id="stand-range-text" placeholder="有効射程 (例: 2m)" style="width:100%; text-align:left; font-size:0.9rem;"></div>
-          <div class="skill-row"><label>持続力</label><select id="p-durability" onchange="updateChart()"><option value="5">A (超持続)</option><option value="4">B (長い)</option><option value="3" selected>C (並)</option><option value="2">D (短い)</option><option value="1">E (一瞬)</option></select></div>
-          <div class="skill-row"><label>精密動作</label><select id="p-precision" onchange="updateChart()"><option value="5">A (機械以上)</option><option value="4">B (正確)</option><option value="3" selected>C (人間並)</option><option value="2">D (大雑把)</option><option value="1">E (皆無)</option></select></div>
-          <div class="skill-row"><label>成長性</label><select id="p-potential" onchange="updateChart()"><option value="5">A (激変)</option><option value="4">B (成長中)</option><option value="3" selected>C (安定)</option><option value="2">D (習熟)</option><option value="1">E (完成)</option></select></div>
+          <div class="stand-param-row">
+            <label>破壊力</label>
+            <div class="stand-inputs">
+              <select id="p-power" class="stand-base" onchange="updateChart()"><option value="0">?</option><option value="5">A (超スゴイ)</option><option value="4">B (スゴイ)</option><option value="3">C (並)</option><option value="2">D (ニガテ)</option><option value="1">E (超ニガテ)</option></select>
+              <input type="number" id="g-power" class="stand-growth" value="0" min="0" onchange="updateChart()" placeholder="+">
+            </div>
+          </div>
+          <div class="stand-param-row">
+            <label>スピード</label>
+            <div class="stand-inputs">
+              <select id="p-speed" class="stand-base" onchange="updateChart()"><option value="0">?</option><option value="5">A (神速)</option><option value="4">B (高速)</option><option value="3">C (並)</option><option value="2">D (鈍い)</option><option value="1">E (遅い)</option></select>
+              <input type="number" id="g-speed" class="stand-growth" value="0" min="0" onchange="updateChart()" placeholder="+">
+            </div>
+          </div>
+          <div class="stand-param-row">
+            <label>射程距離</label>
+            <div class="stand-inputs">
+              <select id="p-range" class="stand-base" onchange="updateChart()"><option value="0">?</option><option value="5">A (超遠距離)</option><option value="4">B (50m程)</option><option value="3">C (10m前後)</option><option value="2">D (5m以内)</option><option value="1">E (2m以内)</option></select>
+              <input type="number" id="g-range" class="stand-growth" value="0" min="0" onchange="updateChart()" placeholder="+">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;"><input type="text" id="stand-range-text" placeholder="有効射程 (例: 2m)" style="width:100%; text-align:left; font-size:0.9rem; padding:5px; border:1px solid #ccc; border-radius:4px;"></div>
+          
+          <div class="stand-param-row">
+            <label>持続力</label>
+            <div class="stand-inputs">
+              <select id="p-durability" class="stand-base" onchange="updateChart()"><option value="0">?</option><option value="5">A (超持続)</option><option value="4">B (長い)</option><option value="3">C (並)</option><option value="2">D (短い)</option><option value="1">E (一瞬)</option></select>
+              <input type="number" id="g-durability" class="stand-growth" value="0" min="0" onchange="updateChart()" placeholder="+">
+            </div>
+          </div>
+          <div class="stand-param-row">
+            <label>精密動作</label>
+            <div class="stand-inputs">
+              <select id="p-precision" class="stand-base" onchange="updateChart()"><option value="0">?</option><option value="5">A (機械以上)</option><option value="4">B (正確)</option><option value="3">C (人間並)</option><option value="2">D (大雑把)</option><option value="1">E (皆無)</option></select>
+              <input type="number" id="g-precision" class="stand-growth" value="0" min="0" onchange="updateChart()" placeholder="+">
+            </div>
+          </div>
+          <div class="stand-param-row">
+            <label>成長性</label>
+            <div class="stand-inputs">
+              <select id="p-potential" class="stand-base" onchange="updateChart()"><option value="0">?</option><option value="5">A (激変)</option><option value="4">B (成長中)</option><option value="3">C (安定)</option><option value="2">D (習熟)</option><option value="1">E (完成)</option></select>
+              <input type="number" id="g-potential" class="stand-growth" value="0" min="0" onchange="updateChart()" placeholder="+">
+            </div>
+          </div>
         </div>
         <div class="col" style="max-width:350px; background:#fff; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
           <canvas id="standChart"></canvas>
@@ -252,6 +432,9 @@
   </div>
 
   <div id="tab-settings" class="tab-content">
+    <div class="row">
+      <div class="col"><label>所持品・アイテム</label><textarea id="pc-items" placeholder="例：スマホ、財布、ロープ..." style="height:60px;"></textarea></div>
+    </div>
     <div class="row">
       <div class="col"><label>プレイヤー名</label><input type="text" id="pl-name"></div>
       <div class="col"><label>一人称 / 口調</label><input type="text" id="pc-tone"></div>
@@ -298,7 +481,6 @@
             </div>
             <div style="font-size:0.85rem; margin-bottom:8px;"><strong>[所持品]</strong><br><span id="out-pc-items"></span></div>
             <div style="font-size:0.85rem; margin-bottom:8px;"><strong>[こだわり]</strong><br><span id="out-pc-quirk"></span></div>
-            <div style="font-size:0.85rem;"><strong>[引力]</strong><br><span id="out-pc-hook"></span></div>
           </div>
           <div class="sheet-box">
             <span class="sheet-label">STAND DATA</span>
@@ -318,61 +500,125 @@
 <div id="helpModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="document.getElementById('helpModal').style.display='none'">&times;</span>
-    <h2 style="text-align:center; color:var(--accent);">パラメータ用語集</h2>
-    <h3>破壊力 (Power)</h3>
-    <p>スタンド像の腕力や、物理的な攻撃力。Aで岩を砕き、Cで人間並み。特殊能力の威力とは別の場合がある。</p>
-    <h3>スピード (Speed)</h3>
-    <p>敏捷性や攻撃の手数。回避判定に使用する。<br><strong>※B以上ないと「ラッシュ（x3）」は使えない。</strong></p>
-    <h3>射程距離 (Range)</h3>
-    <p>スタンドが本体から離れられる距離又はスタンド自身で攻撃できる距離。能力の射程とは別。<br>E:2m(ラッシュ可) / D:5m(室内) / C:10m(中距離) / B:50m(遠距離) / A:それ以上</p>
-    <h3>持続力 (Durability)</h3>
-    <p>防御力や能力の持続時間。これが高いほど<strong>STP(スタンドパワー)</strong>が高くなり、長く戦える。</p>
-    <h3>精密動作性 (Precision)</h3>
-    <p>スタンド自体の手先の器用さ。能力のコントロール精度は本体の【センス】で判定する</p>
-    <h3>成長性 (Potential)</h3>
-    <p>伸びしろ。高いとセッション中に新能力に目覚める可能性がある</p>
+    <h2 style="text-align:center; color:var(--accent);">用語集</h2>
+    <ul>
+      <li><strong>技能コスト</strong>： Lv1=1 / Lv2=5 / Lv3=10 (累計)</li>
+      <li><strong>イニシアティブ(行動順)</strong>：
+        <ul>
+          <li>一般人：ボディ + 運動Lv(合計)</li>
+          <li>スタンド使い：スピード + ボディ + 運動Lv(合計)</li>
+        </ul>
+      </li>
+      <li><strong>本体能力ロール</strong>： 1B20 <= (能力値×2)</li>
+      <li><strong>本体技能ロール</strong>： 技能Lv数B20 <= (能力値×2 + 技能Lv合計)</li>
+      <li><strong>スタンド判定</strong>： ステータス数B20 <= (目標値) 【消費STP:2】</li>
+      <li><strong>クリティカル</strong>： 出目【1】</li>
+      <li><strong>ディザスター</strong>： 成功数0 かつ 出目【20】</li>
+      <li><strong>STP消費</strong>： スタンドでの行動-2 / ターン経過-1</li>
+      <li><strong>STP回復</strong>： スタンドON待機 +2 / スタンドOFF待機 +5 / 休憩 全快 / SP変換(1→2)</li>
+     
+    </ul>
   </div>
 </div>
 
 <div id="toast">処理が完了しました</div>
 
 <script>
-  let maxSkillPoints = 5; let isAwake = false; let myChart = null; let outChartInst = null;
-  const STORAGE_KEY = 'jojo_trpg_db_v17_final';
+  let baseSkillPoints = 20; let maxSkillPoints = 20; let isAwake = false; let myChart = null; let outChartInst = null;
+  const STORAGE_KEY = 'jojo_trpg_db_v300_skill_limit';
 
+  // --- 共通・計算処理 ---
   function switchTab(tabId, btn) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active'); btn.classList.add('active');
     if(tabId === 'tab-share') updateExportView();
   }
+  function showToast(msg) { const t = document.getElementById("toast"); t.innerText = msg; t.className = "show"; setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000); }
+  function safeCopy(text) { const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.left = "-9999px"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); try { document.execCommand('copy'); showToast("クリップボードにコピーしました！"); } catch (err) { showToast("コピー失敗"); } document.body.removeChild(textArea); }
+
+  // 技能コスト計算
+  function getSkillCost(level) {
+    if (level <= 0) return 0;
+    if (level === 1) return 1;
+    if (level === 2) return 5;
+    if (level >= 3) return 10;
+    return 0;
+  }
 
   function calcAll() {
     const age = parseInt(document.getElementById('pc-age').value) || 17;
-    let bonus=0, text="", warn="";
-    if (age>=80) { text="【超老年】(+8P)"; bonus=8; warn="※超老年ペナルティ：ボディ上限2 / スタンド破壊・速-2"; }
-    else if (age>=60) { text="【老年】(+5P)"; bonus=5; warn="※老年ペナルティ：ボディ上限3 / スタンド速・持続-1"; }
-    else if (age>=30) { text="【壮年】(+2P)"; bonus=2; }
+    let ageBonus=0, text="", warn="";
+    if (age>=80) { text="【超老年】(+8P)"; ageBonus=8; warn="※老年: 肉体上限2 / スタンド破壊・速-2"; }
+    else if (age>=60) { text="【老年】(+5P)"; ageBonus=5; warn="※老年: 肉体上限3 / スタンド速・持続-1"; }
+    else if (age>=30) { text="【壮年】(+2P)"; ageBonus=2; }
     document.getElementById('aging-info').innerText = text;
-    document.getElementById('stand-age-warn').innerText = warn;
-    maxSkillPoints = 5 + bonus;
+    document.getElementById('stand-age-warn').innerText = "KPから指示があるまで入力しないでください。";
+    
+    const extraBonus = parseInt(document.getElementById('bonus-points').value) || 0;
+    maxSkillPoints = baseSkillPoints + ageBonus + extraBonus;
 
-    const body = parseInt(document.getElementById('body').value)||0;
-    const sense = parseInt(document.getElementById('sense').value)||0;
-    const intelli = parseInt(document.getElementById('intelli').value)||0;
-    const mental = parseInt(document.getElementById('mental').value)||0;
+    const body = parseInt(document.getElementById('body').value)||1;
+    const sense = parseInt(document.getElementById('sense').value)||1;
+    const intelli = parseInt(document.getElementById('intelli').value)||1;
+    const mental = parseInt(document.getElementById('mental').value)||1;
+    const charm = parseInt(document.getElementById('charm').value)||1;
+    const luck = parseInt(document.getElementById('luck').value)||1;
 
     const hp = (body + mental) * 2;
     const sp = (intelli + mental) * 5;
     document.getElementById('hp-val').innerText = hp;
     document.getElementById('sp-val').innerText = sp;
 
-    const dur = isAwake ? parseInt(document.getElementById('p-durability').value) : 0;
-    const stp = (mental + dur) * 5;
+    let durTotal = 0;
+    if (isAwake) {
+        const base = parseInt(document.getElementById('p-durability').value) || 0;
+        const growth = parseInt(document.getElementById('g-durability').value) || 0;
+        durTotal = base + growth;
+    }
+    const stp = (mental + durTotal) * 5;
     document.getElementById('stp-val').innerText = stp;
 
+    let athleticsBase = 0;
+    let athleticsGrowth = 0;
+    const athBaseInput = document.querySelector('input.skill-base[data-name="運動"]');
+    if(athBaseInput) athleticsBase = parseInt(athBaseInput.value) || 0;
+    const athGrowthInput = athBaseInput ? athBaseInput.nextElementSibling : null;
+    if(athGrowthInput) athleticsGrowth = parseInt(athGrowthInput.value) || 0;
+    const athleticsTotal = athleticsBase + athleticsGrowth;
+
+    let initVal = body + athleticsTotal; 
+    let labelText = "体+運動";
+
+    if(isAwake) {
+        const baseSpeed = parseInt(document.getElementById('p-speed').value) || 0;
+        const growthSpeed = parseInt(document.getElementById('g-speed').value) || 0;
+        const speedVal = baseSpeed + growthSpeed;
+        
+        initVal += speedVal; 
+        labelText = "速+体+運動";
+    }
+    
+    document.getElementById('init-val').innerText = initVal;
+    document.getElementById('init-label').innerText = labelText;
+
+    // 消費ポイント計算 & 入力制限
     let used = 0;
-    document.querySelectorAll('.skill-val').forEach(el => used += parseInt(el.value)||0);
+    document.querySelectorAll('.skill-base').forEach(el => {
+        let lv = parseInt(el.value) || 0;
+        // 入力制限: 3より大きければ3に戻す
+        if (lv > 3) {
+            lv = 3;
+            el.value = 3;
+        }
+        // マイナスチェック
+        if (lv < 0) {
+            lv = 0;
+            el.value = 0;
+        }
+        used += getSkillCost(lv);
+    });
+    
     const rem = maxSkillPoints - used;
     const disp = document.getElementById('skill-rem');
     disp.innerText = rem; document.getElementById('skill-max').innerText = maxSkillPoints;
@@ -385,6 +631,17 @@
     document.getElementById('stp-container').style.display = 'flex';
     setTimeout(initChart, 100); calcAll();
   }
+  
+  function getStandParams() {
+      const ids = ['power', 'speed', 'range', 'durability', 'precision', 'potential'];
+      const values = [];
+      ids.forEach(id => {
+          const base = parseInt(document.getElementById(`p-${id}`).value) || 0;
+          const growth = parseInt(document.getElementById(`g-${id}`).value) || 0;
+          values.push(base + growth);
+      });
+      return values;
+  }
 
   function initChart() {
     const ctx = document.getElementById('standChart').getContext('2d');
@@ -392,15 +649,18 @@
     myChart = new Chart(ctx, {
       type: 'radar',
       data: { labels: ['破壊', 'スピード', '射程', '持続', '精密', '成長'], datasets: [{ label: 'パラメータ', data: [3,3,3,3,3,3], backgroundColor: 'rgba(124, 58, 237, 0.2)', borderColor: '#7c3aed', pointBackgroundColor: '#fff', pointBorderColor: '#7c3aed', borderWidth: 2 }] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5, ticks: { display: false, stepSize: 1 }, pointLabels: { font: { size: 12 }, color: '#333' } } }, plugins: { legend: { display: false } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 6, ticks: { display: false, stepSize: 1 }, pointLabels: { font: { size: 12 }, color: '#333' } } }, plugins: { legend: { display: false } } }
     });
     updateChart();
   }
   function updateChart() {
     if(!myChart) return;
-    const ids = ['p-power', 'p-speed', 'p-range', 'p-durability', 'p-precision', 'p-potential'];
-    myChart.data.datasets[0].data = ids.map(id => document.getElementById(id).value);
-    myChart.update(); calcAll();
+    const values = getStandParams();
+    const maxVal = Math.max(...values, 5);
+    myChart.options.scales.r.max = maxVal + 1;
+    myChart.data.datasets[0].data = values;
+    myChart.update(); 
+    calcAll(); 
   }
 
   function updateExportView() {
@@ -408,7 +668,6 @@
     document.getElementById('out-pc-age').innerText = document.getElementById('pc-age').value;
     document.getElementById('out-pc-job').innerText = document.getElementById('pc-job').value;
     document.getElementById('out-pc-quirk').innerText = document.getElementById('pc-quirk').value;
-    document.getElementById('out-pc-hook').innerText = document.getElementById('pc-hook').value;
     document.getElementById('out-pc-items').innerText = document.getElementById('pc-items').value || '(なし)';
     document.getElementById('out-hp-val').innerText = document.getElementById('hp-val').innerText;
     document.getElementById('out-sp-val').innerText = document.getElementById('sp-val').innerText;
@@ -420,13 +679,28 @@
     } else { outStpBox.style.display = 'none'; }
 
     let statsHTML = "";
-    const attrs = {body:'ボディ', sense:'センス', intelli:'インテリ', mental:'メンタル'};
+    const attrs = {body:'ボディ', sense:'センス', intelli:'インテリ', mental:'メンタル', charm:'チャーム', luck:'ラック'};
     for(let key in attrs) {
       const val = document.getElementById(key).value;
       statsHTML += `<b>${attrs[key]}:${val}</b>`;
       let skills = [];
-      document.querySelectorAll(`.skill-val[data-attr="${key}"]`).forEach(el => { if(el.value > 0) skills.push(`${el.getAttribute('data-name')}+${el.value}`); });
-      if(skills.length > 0) statsHTML += ` <small>(${skills.join(',')})</small>`;
+      document.querySelectorAll(`.skill-base[data-attr="${key}"]`).forEach(el => { 
+          const baseVal = parseInt(el.value) || 0;
+          const growthInput = el.nextElementSibling;
+          const growthVal = growthInput ? (parseInt(growthInput.value) || 0) : 0;
+          const totalVal = baseVal + growthVal;
+
+          if(totalVal > 0) {
+              let skillName = el.getAttribute('data-name');
+              const subId = el.getAttribute('data-sub');
+              if(subId) {
+                  const subVal = document.getElementById(subId).value;
+                  if(subVal) skillName += `:${subVal}`;
+              }
+              skills.push(`${skillName}(Lv${totalVal})`); 
+          }
+      });
+      if(skills.length > 0) statsHTML += ` <small>[${skills.join(',')}]</small>`;
       statsHTML += "<br>";
     }
     document.getElementById('out-pc-stats').innerHTML = statsHTML;
@@ -440,23 +714,31 @@
         document.getElementById('out-stand-form').innerText = sForm;
         document.getElementById('out-stand-type').innerText = sType;
         
-        const ids = ['p-power', 'p-speed', 'p-range', 'p-durability', 'p-precision', 'p-potential'];
+        const params = getStandParams(); 
         const labels = ['破壊', '速', '射程', '持続', '精密', '成長'];
-        const ranks = ['?','E','D','C','B','A'];
+        const ranks = ['?','E','D','C','B','A','S','SS']; 
         const rangeText = document.getElementById('stand-range-text').value;
         let paramHTML = "";
-        ids.forEach((id, idx) => {
-          const val = document.getElementById(id).value;
-          const color = (val >= 4) ? '#7c3aed' : (val <= 1) ? '#ef4444' : '#333';
-          let suffix = (id === 'p-range' && rangeText) ? ` <span style="font-size:0.8rem;">(${rangeText})</span>` : "";
-          paramHTML += `<div style="color:${color}">${labels[idx]}: ${ranks[val]}${suffix}</div>`;
+        
+        params.forEach((val, idx) => {
+          let rankStr = (val < ranks.length) ? ranks[val] : `S+${val-5}`;
+          if(val === 0) rankStr = "-";
+          
+          let suffix = (idx === 2 && rangeText) ? ` <span style="font-size:0.8rem;">(${rangeText})</span>` : "";
+          
+          const baseVal = parseInt(document.getElementById(`p-${['power','speed','range','durability','precision','potential'][idx]}`).value);
+          const isGrown = val > baseVal;
+          const style = isGrown ? 'color:#059669; font-weight:bold;' : (val >= 4 ? 'color:#7c3aed;' : '');
+          const mark = isGrown ? '↑' : '';
+
+          paramHTML += `<div style="${style}">${labels[idx]}: ${rankStr}${mark}${suffix}</div>`;
         });
         document.getElementById('out-stand-params').innerHTML = paramHTML;
 
         const ctx = document.getElementById('outChart').getContext('2d');
         if(outChartInst) outChartInst.destroy();
-        let dataValues = [3,3,3,3,3,3]; if(myChart) dataValues = myChart.data.datasets[0].data;
-        outChartInst = new Chart(ctx, { type: 'radar', data: { labels: ['破壊', '速', '射程', '持続', '精密', '成長'], datasets: [{ label: 'Stand', data: dataValues, backgroundColor: 'rgba(124, 58, 237, 0.1)', borderColor: '#7c3aed', pointBackgroundColor: '#7c3aed', borderWidth: 3 }] }, options: { animation: false, scales: { r: { min: 0, max: 5, ticks: { display: false }, pointLabels: { font: { size: 14, weight:'bold' }, color: '#0f172a' }, grid: { color: '#cbd5e1' } } }, plugins: { legend: { display: false } } } });
+        
+        outChartInst = new Chart(ctx, { type: 'radar', data: { labels: ['破壊', '速', '射程', '持続', '精密', '成長'], datasets: [{ label: 'Stand', data: params, backgroundColor: 'rgba(124, 58, 237, 0.1)', borderColor: '#7c3aed', pointBackgroundColor: '#7c3aed', borderWidth: 3 }] }, options: { animation: false, scales: { r: { min: 0, max: Math.max(...params, 5)+1, ticks: { display: false }, pointLabels: { font: { size: 14, weight:'bold' }, color: '#0f172a' }, grid: { color: '#cbd5e1' } } }, plugins: { legend: { display: false } } } });
     } else {
         document.getElementById('out-stand-name').innerText = "（未発現）";
         document.getElementById('out-stand-ability').innerText = "-";
@@ -465,22 +747,106 @@
     }
   }
 
-  function generateImage() {
-    updateExportView(); const target = document.getElementById('sheet-canvas');
-    setTimeout(() => { html2canvas(target, { scale: 2, backgroundColor: "#ffffff", logging: false }).then(canvas => { const link = document.createElement('a'); link.href = canvas.toDataURL('image/png'); link.download = `jojo_sheet_${document.getElementById('pc-name').value || 'char'}.png`; link.click(); showToast("画像を保存しました"); }); }, 200);
+  // ★★★ チャットパレット整理＆SP変数対応＆独自技能対応 ★★★
+  
+  function getInitiativeValue() {
+      const body = parseInt(document.getElementById('body').value) || 1;
+      
+      let athleticsTotal = 0;
+      const athBaseInput = document.querySelector('input.skill-base[data-name="運動"]');
+      if(athBaseInput) {
+          const base = parseInt(athBaseInput.value) || 0;
+          const growth = parseInt(athBaseInput.nextElementSibling.value) || 0;
+          athleticsTotal = base + growth;
+      }
+      
+      let initVal = body + athleticsTotal;
+      let label = "体+運動";
+      
+      if (isAwake) {
+          const baseSpeed = parseInt(document.getElementById('p-speed').value) || 0;
+          const growthSpeed = parseInt(document.getElementById('g-speed').value) || 0;
+          const speedVal = baseSpeed + growthSpeed;
+          
+          initVal += speedVal;
+          label = "速+体+運動";
+      }
+      return { value: initVal, label: label };
   }
-  function showToast(msg) { const t = document.getElementById("toast"); t.innerText = msg; t.className = "show"; setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000); }
-  function safeCopy(text) { const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.left = "-9999px"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); try { document.execCommand('copy'); showToast("クリップボードにコピーしました！"); } catch (err) { showToast("コピー失敗"); } document.body.removeChild(textArea); }
-  function generateText() {
-    let text = `【ジョジョTRPG】\n名前：${document.getElementById('pc-name').value}\nHP:${document.getElementById('hp-val').innerText} / SP:${document.getElementById('sp-val').innerText} / STP:${document.getElementById('stp-val').innerText}\n所持品：${document.getElementById('pc-items').value.replace(/\n/g, ', ')}\n----------------\n`;
-    if(isAwake) { text += `スタンド：${document.getElementById('stand-name').value}\nタイプ：${document.getElementById('stand-form').value} / ${document.getElementById('stand-type').value}\n能力：${document.getElementById('stand-ability').value}\n----------------\n`; }
-    navigator.clipboard.writeText(text).then(() => alert('コピー完了'));
+
+  function getTarget(val) {
+      return val * 2;
+  }
+
+  function getStandCheckTarget(val) {
+      return val * 3;
+  }
+
+  function getStandAttackTarget(val) {
+      return val * 4 - 2;
   }
 
   function copyPC() {
-    const stats = { body: parseInt(document.getElementById('body').value), sense: parseInt(document.getElementById('sense').value), intelli: parseInt(document.getElementById('intelli').value), mental: parseInt(document.getElementById('mental').value) };
-    let commands = `// ---本体判定---\n${stats.body}d6>=5 【ボディ】\n${stats.sense}d6>=5 【センス】\n${stats.intelli}d6>=5 【インテリ】\n${stats.mental}d6>=5 【メンタル】\n\n// ---技能---\n`;
-    document.querySelectorAll('.skill-val').forEach(el => { const val = parseInt(el.value); if(val > 0) commands += `${stats[el.getAttribute('data-attr')] + val}d6>=5 技能:【${el.getAttribute('data-name')}】\n`; });
+    const stats = { 
+        body: parseInt(document.getElementById('body').value), 
+        sense: parseInt(document.getElementById('sense').value), 
+        intelli: parseInt(document.getElementById('intelli').value), 
+        mental: parseInt(document.getElementById('mental').value),
+        charm: parseInt(document.getElementById('charm').value),
+        luck: parseInt(document.getElementById('luck').value)
+    };
+    
+    const initData = getInitiativeValue();
+    let commands = `// 〓〓〓 基本情報・SP 〓〓〓\n// [イニシアティブ]: ${initData.value} (固定値: ${initData.label})\n// スタンドon状態[STP消費]: 行動-2 / ターン経過-1\n// [STP回復]: ON待機+2 / OFF待機+5 / 休憩全快 / SP変換(1→2)\n`;
+    
+    // SP判定を固定値ではなく変数{SP}で出力
+    commands += `1D50<={SP} 【SP】精神力判定\n`;
+
+    commands += `\n// 〓〓〓 本体能力(1B20) 〓〓〓\n`;
+    commands += `1B20<=${stats.body*2} 【ボディ】(ランク${stats.body})\n`;
+    commands += `1B20<=${stats.sense*2} 【センス】(ランク${stats.sense})\n`;
+    commands += `1B20<=${stats.intelli*2} 【インテリ】(ランク${stats.intelli})\n`;
+    commands += `1B20<=${stats.mental*2} 【メンタル】(ランク${stats.mental})\n`;
+    commands += `1B20<=${stats.charm*2} 【チャーム】(ランク${stats.charm})\n`;
+    commands += `1B20<=${stats.luck*2} 【ラック】(ランク${stats.luck})\n`;
+
+    commands += `\n// 〓〓〓 技能判定(LvB20) 〓〓〓\n`;
+    
+    // 固定技能と独自技能を全て処理
+    document.querySelectorAll('.skill-base').forEach(el => { 
+        const baseVal = parseInt(el.value) || 0;
+        const growthVal = parseInt(el.nextElementSibling.value) || 0;
+        const totalLv = baseVal + growthVal;
+
+        let attrKey = el.getAttribute('data-attr');
+        let skillName = el.getAttribute('data-name');
+
+        // 独自技能の場合の処理
+        if (el.dataset.isCustom) {
+            const row = el.closest('.skill-row');
+            const select = row.querySelector('select.custom-attr');
+            const nameInput = row.querySelector('input.custom-name');
+            
+            attrKey = select.value;
+            skillName = nameInput.value || '独自技能';
+        }
+
+        const attrVal = stats[attrKey];
+        const target = (attrVal * 2) + totalLv; 
+        
+        if(totalLv > 0) {
+            // 固定技能のサブ項目チェック (知識:〇〇 等)
+            if (!el.dataset.isCustom) {
+                const subId = el.getAttribute('data-sub');
+                if(subId) {
+                    const subVal = document.getElementById(subId).value;
+                    if(subVal) skillName += `:${subVal}`;
+                }
+            }
+            commands += `${totalLv}B20<=${target} 技能:【${skillName}】(目標${target})\n`; 
+        }
+    });
+    
     const memo = `職業: ${document.getElementById('pc-job').value}\n\n【所持品】\n${document.getElementById('pc-items').value}\n\n【こだわり】\n${document.getElementById('pc-quirk').value}`;
     const statusArray = [
         { label: "HP", value: parseInt(document.getElementById('hp-val').innerText), max: parseInt(document.getElementById('hp-val').innerText) },
@@ -488,29 +854,75 @@
     ];
     if(isAwake) statusArray.push({ label: "STP", value: parseInt(document.getElementById('stp-val').innerText), max: parseInt(document.getElementById('stp-val').innerText) });
     
-    const data = { kind: "character", data: { name: document.getElementById('pc-name').value || "PC", initiative: stats.sense, memo: memo, status: statusArray, params: [ {label:"体",value:stats.body.toString()},{label:"感",value:stats.sense.toString()},{label:"知",value:stats.intelli.toString()},{label:"精",value:stats.mental.toString()} ], commands: commands } };
+    const data = { kind: "character", data: { name: document.getElementById('pc-name').value || "PC", initiative: initData.value, memo: memo, status: statusArray, params: [ {label:"体",value:stats.body.toString()},{label:"感",value:stats.sense.toString()},{label:"知",value:stats.intelli.toString()},{label:"精",value:stats.mental.toString()} ], commands: commands } };
     safeCopy(JSON.stringify(data));
   }
 
   function copyStand() {
     if(!isAwake) { showToast("スタンドが発現していません"); return; }
-    const params = ['p-power', 'p-speed', 'p-range', 'p-durability', 'p-precision', 'p-potential'].map(id => document.getElementById(id).value);
-    const ranks = ['?','E','D','C','B','A'];
     
-    // ★ラッシュ制限ロジック★
-    const sForm = document.getElementById('stand-form').value;
-    const speedVal = parseInt(params[1]); // スピードの値(1~5)
-    let attackCmd = "【破壊力】攻撃";
-    
-    // 「人型」かつ「スピードB(4)以上」ならラッシュ解禁
-    if (sForm.includes("人型") && speedVal >= 4) {
-      attackCmd = "【破壊力】ラッシュ！(x3)";
-    }
+    const pcStats = { 
+        body: parseInt(document.getElementById('body').value), 
+        sense: parseInt(document.getElementById('sense').value), 
+        intelli: parseInt(document.getElementById('intelli').value), 
+        mental: parseInt(document.getElementById('mental').value),
+        charm: parseInt(document.getElementById('charm').value),
+        luck: parseInt(document.getElementById('luck').value)
+    };
 
-    const commands = `// ---スタンド判定---\n${params[0]}d6>=5 ${attackCmd}\n${params[1]}d6>=5 【スピード】回避\n${params[2]}d6>=5 【射程】\n${params[4]}d6>=5 【精密】\n${params[5]}d6>=5 【成長】\n`;
-    const sType = document.getElementById('stand-type').value;
-    const rangeText = document.getElementById('stand-range-text').value;
+    const params = getStandParams(); 
+    const ranks = ['?','E','D','C','B','A','S','SS']; 
     
+    const dicePower = params[0]; 
+    const diceSpeed = params[1];
+    const diceRange = params[2];
+    const diceDur = params[3];
+    const dicePrecision = params[4];
+    const dicePotential = params[5];
+
+    // 戦闘用目標値
+    const targetAttack = getStandAttackTarget(params[4]);
+    const targetEvade = pcStats.sense * 3;
+    const targetGuard = pcStats.mental * 3;
+
+    // 汎用判定用目標値
+    const targetCheckPower = getStandCheckTarget(pcStats.body);
+    const targetCheckSpeed = getStandCheckTarget(pcStats.sense);
+    const targetCheckRange = getStandCheckTarget(pcStats.intelli);
+    const targetCheckDur = getStandCheckTarget(pcStats.mental);
+    const targetCheckPrecision = getStandCheckTarget(pcStats.sense);
+    const targetCheckPotential = getStandCheckTarget(pcStats.luck);
+
+    const initData = getInitiativeValue();
+    
+    const sForm = document.getElementById('stand-form').value;
+    let attackCmd = `【破壊力】攻撃(威力:${params[0]})`;
+    if (sForm.includes("人型") && diceSpeed >= 4) { attackCmd = `【破壊力】ラッシュ(威力:${params[0]})`; }
+
+    let commands = `// 〓〓〓 基本情報・SP 〓〓〓\n// [イニシアティブ]: ${initData.value} (固定値: ${initData.label})\n// スタンドon状態[STP消費]: 行動-2 / ターン経過-1\n// [STP回復]: ON待機+2 / OFF待機+5 / 休憩全快 / SP変換(1→2)\n`;
+
+    // SP判定
+    commands += `1D50<={SP} 【SP】精神力判定\n\n`;
+
+    commands += `// 〓〓〓 スタンド戦闘(消費STP:2) 〓〓〓\n`;
+    commands += `${dicePower}B20<=${targetAttack} ${attackCmd}\n`;
+    commands += `// ダメージ = 破壊力${params[0]} + (成功数-1)\n\n`;
+    
+    commands += `${diceSpeed}B20<=${targetEvade} 【スピード】回避(目標${targetEvade})\n`;
+    commands += `// 成功数分、ヒット数を相殺\n\n`;
+    
+    commands += `${diceDur}B20<=${targetGuard} 【持続力】防御(目標${targetGuard})\n`;
+    commands += `// 成功数分、ダメージ軽減\n\n`;
+    
+    commands += `// 〓〓〓 スタンド汎用判定(目標:能力x3) 〓〓〓\n`;
+    commands += `${dicePower}B20<=${targetCheckPower} 【破壊力】判定(体x3)\n`;
+    commands += `${diceSpeed}B20<=${targetCheckSpeed} 【スピード】判定(感x3)\n`;
+    commands += `${diceRange}B20<=${targetCheckRange} 【射程】判定(知x3)\n`;
+    commands += `${diceDur}B20<=${targetCheckDur} 【持続力】判定(精x3)\n`;
+    commands += `${dicePrecision}B20<=${targetCheckPrecision} 【精密】判定(感x3)\n`;
+    commands += `${dicePotential}B20<=${targetCheckPotential} 【成長】判定(運x3)\n`;
+    
+    const rangeText = document.getElementById('stand-range-text').value;
     let rangeDisp = ranks[params[2]];
     if(rangeText) rangeDisp += `(${rangeText})`;
 
@@ -520,16 +932,16 @@
       kind: "character",
       data: {
         name: document.getElementById('stand-name').value || "スタンド",
-        initiative: parseInt(params[1]), // スピード
+        initiative: initData.value, 
         memo: memo,
-        params: [ {label:"破壊",value:params[0]}, {label:"速",value:params[1]} ],
+        params: [ {label:"破壊",value:params[0].toString()}, {label:"速",value:params[1].toString()} ],
         commands: commands
       }
     };
     safeCopy(JSON.stringify(data));
   }
 
-  // --- 保存・読込システム ---
+  // --- 保存・読込 ---
   function getAllData() { const data = {}; document.querySelectorAll('input, select, textarea').forEach(el => { if(el.id && el.type !== 'file' && el.id !== 'char-list') data[el.id] = el.value; }); data.isAwake = isAwake; return data; }
   function setAllData(data) { if(!data) return; Object.keys(data).forEach(key => { const el = document.getElementById(key); if(el) el.value = data[key]; }); if(data.isAwake) { awakeStand(); } else { document.getElementById('stand-section').style.display = 'none'; document.querySelector('.awake-btn').style.display = 'block'; isAwake = false; document.getElementById('stp-container').style.display = 'none'; } calcAll(); if(isAwake) setTimeout(updateChart, 200); }
   function saveToBrowser() { const name = document.getElementById('pc-name').value || 'NoName'; const allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; allData[name] = getAllData(); localStorage.setItem(STORAGE_KEY, JSON.stringify(allData)); updateList(); showToast(`「${name}」を保存しました`); }
@@ -538,7 +950,7 @@
   function updateList() { const list = document.getElementById('char-list'); const allData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; list.innerHTML = '<option value="">(選択してください)</option>'; Object.keys(allData).forEach(name => { const opt = document.createElement('option'); opt.value = name; opt.innerText = name; list.appendChild(opt); }); }
   function downloadJSON() { const data = getAllData(); const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `jojo_${data['pc-name'] || 'char'}.json`; a.click(); }
   function uploadJSON(input) { if(input.files.length===0) return; const reader = new FileReader(); reader.onload = function(e){ try { setAllData(JSON.parse(e.target.result)); showToast("JSONファイルを読み込みました"); } catch(err) { alert("ファイル形式が正しくありません"); } }; reader.readAsText(input.files[0]); }
-
+  
   window.addEventListener('DOMContentLoaded', () => { calcAll(); updateList(); });
   window.onclick = function(event) { if (event.target == document.getElementById('helpModal')) document.getElementById('helpModal').style.display = "none"; }
 </script>
