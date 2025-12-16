@@ -901,7 +901,7 @@
     let commands = `// 〓〓〓 基本情報・SP 〓〓〓\n// [イニシアティブ]: ${initData.value} (固定値: ${initData.label})\n// スタンドon状態[STP消費]: 行動-2 / ターン経過-1\n// [STP回復]: ON待機+2 / OFF待機+5 / 休憩全快 / SP変換(1→2)\n`;
 
     // SP判定
-    commands += `1D60<={SP} 【SP】精神力判定\n\n`;
+    commands += `1D100<={SP} 【SP】精神力判定\n\n`;
 
     commands += `// 〓〓〓 スタンド戦闘(消費STP:2) 〓〓〓\n`;
     commands += `${dicePower}B20<=${targetAttack} ${attackCmd}\n`;
