@@ -951,7 +951,7 @@
   window.addEventListener('DOMContentLoaded', () => { calcAll(); updateList(); });
   window.onclick = function(event) { if (event.target == document.getElementById('helpModal')) document.getElementById('helpModal').style.display = "none"; }
 
-  // 画像として保存 (html2canvasを使用)
+  // 画像保存 (html2canvasを使用)
   function generateImage() {
     const target = document.getElementById('sheet-canvas');
     const pcName = document.getElementById('pc-name').value || 'character';
