@@ -799,8 +799,6 @@
     const initData = getInitiativeValue();
     let commands = `// 〓〓〓 基本情報・SP 〓〓〓\n// [イニシアティブ]: ${initData.value} (固定値: ${initData.label})\n// スタンドon状態[STP消費]: 行動-2 / ターン経過-1\n// [STP回復]: ON待機+2 / OFF待機+5 / 休憩全快 / SP変換(1→2)\n`;
     
- 
-
     commands += `\n// 〓〓〓 本体能力(1B20) 〓〓〓\n`;
     commands += `1B20<=${stats.body*2} 【ボディ】(ランク${stats.body})\n`;
     commands += `1B20<=${stats.sense*2} 【センス】(ランク${stats.sense})\n`;
@@ -853,11 +851,29 @@
     ];
     if(isAwake) statusArray.push({ label: "STP", value: parseInt(document.getElementById('stp-val').innerText), max: parseInt(document.getElementById('stp-val').innerText) });
     
-    const data = { kind: "character", data: { name: document.getElementById('pc-name').value || "PC", initiative: initData.value, memo: memo, status: statusArray, params: [ {label:"体",value:stats.body.toString()},{label:"感",value:stats.sense.toString()},{label:"知",value:stats.intelli.toString()},{label:"精",value:stats.mental.toString()} ], commands: commands } };{label:"魅",value:stats.charm.toString()}, {label:"運",value:stats.luck.toString()}],
+    // ▼ここが修正箇所（params配列を正しく閉じる）
+    const data = { 
+        kind: "character", 
+        data: { 
+            name: document.getElementById('pc-name').value || "PC", 
+            initiative: initData.value, 
+            memo: memo, 
+            status: statusArray, 
+            params: [ 
+                {label:"体",value:stats.body.toString()},
+                {label:"感",value:stats.sense.toString()},
+                {label:"知",value:stats.intelli.toString()},
+                {label:"精",value:stats.mental.toString()},
+                {label:"魅",value:stats.charm.toString()},
+                {label:"運",value:stats.luck.toString()}
+            ], 
+            commands: commands 
+        } 
+    };
     safeCopy(JSON.stringify(data));
   }
 
-  function copyStand() {
+ function copyStand() {
     if(!isAwake) { showToast("スタンドが発現していません"); return; }
     
     const pcStats = { 
@@ -898,8 +914,8 @@
     let attackCmd = `【破壊力】攻撃(威力:${params[0]})`;
     if (sForm.includes("人型") && diceSpeed >= 4) { attackCmd = `【破壊力】ラッシュ(威力:${params[0]})`; }
 
+    // ▼引用符漏れを修正
     let commands = `// 〓〓〓 基本情報・SP 〓〓〓\n// [イニシアティブ]: ${initData.value} (固定値: ${initData.label})\n// スタンドon状態[STP消費]: 行動-2 / ターン経過-1\n// [STP回復]: ON待機+2 / OFF待機+5 / 休憩全快 / SP変換(1→2)\n`;
-
 
     commands += `// 〓〓〓 スタンド戦闘(消費STP:2) 〓〓〓\n`;
     commands += `${dicePower}B20<=${targetAttack} ${attackCmd}\n`;
@@ -911,7 +927,7 @@
     commands += `// 成功数分、ダメージ軽減\n\n`;
     
     commands += `// 〓〓〓 スタンド汎用判定(目標:能力x3) 〓〓〓\n`;
-    commands += `${dicePower}B20<=${dicePrecision}＊4-2 【破壊力】判定(精密×4-2)\n`;
+    commands += `${dicePower}B20<=${dicePrecision}*4-2 【破壊力】判定(精密×4-2)\n`; // 全角＊を半角*に修正推奨
     commands += `${diceSpeed}B20<=${targetCheckSpeed} 【スピード】判定(感x3)\n`;
     commands += `${diceRange}B20<=${targetCheckRange} 【射程】判定(知x3)\n`;
     commands += `${diceDur}B20<=${targetCheckDur} 【持続力】判定(精x3)\n`;
