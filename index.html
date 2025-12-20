@@ -853,8 +853,7 @@
     ];
     if(isAwake) statusArray.push({ label: "STP", value: parseInt(document.getElementById('stp-val').innerText), max: parseInt(document.getElementById('stp-val').innerText) });
     
-    const data = { kind: "character", data: { name: document.getElementById('pc-name').value || "PC", initiative: initData.value, memo: memo, status: statusArray, params: [ {label:"体",value:stats.body.toString()},{label:"感",value:stats.sense.toString()},{label:"知",value:stats.intelli.toString()},{label:"精",value:stats.mental.toString()} ], commands: commands } };{label:"魅",value:stats.charm.toString()},
-                {label:"運",value:stats.luck.toString()}
+    const data = { kind: "character", data: { name: document.getElementById('pc-name').value || "PC", initiative: initData.value, memo: memo, status: statusArray, params: [ {label:"体",value:stats.body.toString()},{label:"感",value:stats.sense.toString()},{label:"知",value:stats.intelli.toString()},{label:"精",value:stats.mental.toString()} ], commands: commands } };{label:"魅",value:stats.charm.toString()}, {label:"運",value:stats.luck.toString()}],
     safeCopy(JSON.stringify(data));
   }
 
