@@ -946,7 +946,14 @@
         name: document.getElementById('stand-name').value || "スタンド",
         initiative: initData.value, 
         memo: memo,
-        params: [ {label:"破壊",value:params[0].toString()}, {label:"速",value:params[1].toString()} ],
+        params: [ 
+            {label:"破壊",value:params[0].toString()}, 
+            {label:"速",value:params[1].toString()},
+            {label:"射程",value:params[2].toString()},
+            {label:"持続",value:params[3].toString()},
+            {label:"精密",value:params[4].toString()},
+            {label:"成長",value:params[5].toString()}
+        ],
         commands: commands
       }
     };
