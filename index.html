@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ジョジョTRPGシート</title>
+<title>ジョジョTRPGシート v2</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
@@ -72,8 +72,8 @@
   input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); background: #faf5ff; }
 
   /* ステータスバー */
-  .status-container { display: flex; gap: 15px; margin: 20px 0; }
-  .status-box { flex: 1; text-align: center; padding: 15px; border-radius: 12px; font-family: "Courier New", monospace; box-shadow: 4px 4px 0 rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .status-container { display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
+  .status-box { flex: 1; min-width: 150px; text-align: center; padding: 10px; border-radius: 12px; font-family: "Courier New", monospace; box-shadow: 4px 4px 0 rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; }
   .status-val { font-size: 2.2rem; font-weight: 900; line-height: 1; }
   .status-label { font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; }
   .status-sub { font-size: 0.7rem; opacity: 0.8; }
@@ -81,6 +81,15 @@
   .sp-style { background: #f3e8ff; color: var(--spirit); border: 3px solid var(--spirit); }
   .stp-style { background: #ecfdf5; color: var(--stand-p); border: 3px solid var(--stand-p); display: none; }
   .init-style { background: #eff6ff; color: var(--init-color); border: 3px solid var(--init-color); }
+
+  /* 数値入力用カスタムスタイル */
+  .status-input {
+    width: 70px; background: transparent; border: none; border-bottom: 2px dashed rgba(0,0,0,0.2);
+    text-align: right; font-size: 2.0rem; font-weight: 900; font-family: "Courier New", monospace;
+    color: inherit; outline: none; padding: 0; margin: 0;
+  }
+  .status-input:focus { border-bottom-style: solid; background: rgba(255,255,255,0.3); }
+  .status-input::-webkit-outer-spin-button, .status-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
   /* 技能ポイント管理 */
   .skill-point-box {
@@ -197,17 +206,29 @@
     <div class="status-container">
       <div class="status-box hp-style">
         <span class="status-label">HP (耐久力)</span>
-        <span class="status-val" id="hp-val">0</span>
+        <div style="display:flex; align-items:baseline; justify-content:center; gap:5px;">
+            <input type="number" id="hp-curr" class="status-input" value="0">
+            <span style="font-size:1.5rem; font-weight:bold; opacity:0.6;">/</span>
+            <span id="hp-max" style="font-size:1.5rem; font-weight:bold;">0</span>
+        </div>
         <span class="status-sub">(体+精)×2</span>
       </div>
       <div class="status-box sp-style">
         <span class="status-label">SP (魂値)</span>
-        <span class="status-val" id="sp-val">0</span>
+        <div style="display:flex; align-items:baseline; justify-content:center; gap:5px;">
+            <input type="number" id="sp-curr" class="status-input" value="0">
+            <span style="font-size:1.5rem; font-weight:bold; opacity:0.6;">/</span>
+            <span id="sp-max" style="font-size:1.5rem; font-weight:bold;">0</span>
+        </div>
         <span class="status-sub">(知+精)×5</span>
       </div>
       <div class="status-box stp-style" id="stp-container">
         <span class="status-label">STP (Energy)</span>
-        <span class="status-val" id="stp-val">0</span>
+        <div style="display:flex; align-items:baseline; justify-content:center; gap:5px;">
+            <input type="number" id="stp-curr" class="status-input" value="0">
+            <span style="font-size:1.5rem; font-weight:bold; opacity:0.6;">/</span>
+            <span id="stp-max" style="font-size:1.5rem; font-weight:bold;">0</span>
+        </div>
         <span class="status-sub">(精+持続)×5</span>
       </div>
       <div class="status-box init-style">
@@ -516,7 +537,7 @@
       <li><strong>ファイナルディザスター</strong>： 成功数0 かつ 出目【20】</li>
       <li><strong>STP消費</strong>： スタンドでの行動-2 / ターン経過-1</li>
       <li><strong>STP回復</strong>： スタンドON待機 +2 / スタンドOFF待機 +5 / 休憩 全快 / SP変換(1→2)</li>
-     
+      
     </ul>
   </div>
 </div>
@@ -565,10 +586,16 @@
     const charm = parseInt(document.getElementById('charm').value)||1;
     const luck = parseInt(document.getElementById('luck').value)||1;
 
+    // HP, SP, STP 計算 (最大値のみ計算、現在値は初期化のみ)
     const hp = (body + mental) * 2;
     const sp = (intelli + mental) * 5;
-    document.getElementById('hp-val').innerText = hp;
-    document.getElementById('sp-val').innerText = sp;
+    
+    document.getElementById('hp-max').innerText = hp;
+    document.getElementById('sp-max').innerText = sp;
+    
+    // 現在値が0なら最大値をセット (初期化)
+    if(parseInt(document.getElementById('hp-curr').value) == 0) document.getElementById('hp-curr').value = hp;
+    if(parseInt(document.getElementById('sp-curr').value) == 0) document.getElementById('sp-curr').value = sp;
 
     let durTotal = 0;
     if (isAwake) {
@@ -577,7 +604,8 @@
         durTotal = base + growth;
     }
     const stp = (mental + durTotal) * 5;
-    document.getElementById('stp-val').innerText = stp;
+    document.getElementById('stp-max').innerText = stp;
+    if(parseInt(document.getElementById('stp-curr').value) == 0) document.getElementById('stp-curr').value = stp;
 
     let athleticsBase = 0;
     let athleticsGrowth = 0;
@@ -669,13 +697,22 @@
     document.getElementById('out-pc-job').innerText = document.getElementById('pc-job').value;
     document.getElementById('out-pc-quirk').innerText = document.getElementById('pc-quirk').value;
     document.getElementById('out-pc-items').innerText = document.getElementById('pc-items').value || '(なし)';
-    document.getElementById('out-hp-val').innerText = document.getElementById('hp-val').innerText;
-    document.getElementById('out-sp-val').innerText = document.getElementById('sp-val').innerText;
+    
+    // 現在値と最大値を取得して表示
+    const hpCurr = document.getElementById('hp-curr').value;
+    const hpMax = document.getElementById('hp-max').innerText;
+    document.getElementById('out-hp-val').innerText = `${hpCurr} / ${hpMax}`;
+
+    const spCurr = document.getElementById('sp-curr').value;
+    const spMax = document.getElementById('sp-max').innerText;
+    document.getElementById('out-sp-val').innerText = `${spCurr} / ${spMax}`;
     
     const outStpBox = document.getElementById('out-stp-box');
     if(isAwake) {
       outStpBox.style.display = 'block';
-      document.getElementById('out-stp-val').innerText = document.getElementById('stp-val').innerText;
+      const stpCurr = document.getElementById('stp-curr').value;
+      const stpMax = document.getElementById('stp-max').innerText;
+      document.getElementById('out-stp-val').innerText = `${stpCurr} / ${stpMax}`;
     } else { outStpBox.style.display = 'none'; }
 
     let statsHTML = "";
@@ -845,13 +882,22 @@
     });
     
     const memo = `職業: ${document.getElementById('pc-job').value}\n\n【所持品】\n${document.getElementById('pc-items').value}\n\n【こだわり】\n${document.getElementById('pc-quirk').value}`;
-    const statusArray = [
-        { label: "HP", value: parseInt(document.getElementById('hp-val').innerText), max: parseInt(document.getElementById('hp-val').innerText) },
-        { label: "SP", value: parseInt(document.getElementById('sp-val').innerText), max: parseInt(document.getElementById('sp-val').innerText) }
-    ];
-    if(isAwake) statusArray.push({ label: "STP", value: parseInt(document.getElementById('stp-val').innerText), max: parseInt(document.getElementById('stp-val').innerText) });
     
-    // ▼ここが修正箇所（params配列を正しく閉じる）
+    const hpCurr = parseInt(document.getElementById('hp-curr').value);
+    const hpMax = parseInt(document.getElementById('hp-max').innerText);
+    const spCurr = parseInt(document.getElementById('sp-curr').value);
+    const spMax = parseInt(document.getElementById('sp-max').innerText);
+
+    const statusArray = [
+        { label: "HP", value: hpCurr, max: hpMax },
+        { label: "SP", value: spCurr, max: spMax }
+    ];
+    if(isAwake) {
+        const stpCurr = parseInt(document.getElementById('stp-curr').value);
+        const stpMax = parseInt(document.getElementById('stp-max').innerText);
+        statusArray.push({ label: "STP", value: stpCurr, max: stpMax });
+    }
+    
     const data = { 
         kind: "character", 
         data: { 
@@ -914,7 +960,6 @@
     let attackCmd = `【破壊力】攻撃(威力:${params[0]})`;
     if (sForm.includes("人型") && diceSpeed >= 4) { attackCmd = `【破壊力】ラッシュ(威力:${params[0]})`; }
 
-    // ▼引用符漏れを修正
     let commands = `// 〓〓〓 基本情報・SP 〓〓〓\n// [イニシアティブ]: ${initData.value} (固定値: ${initData.label})\n// スタンドon状態[STP消費]: 行動-2 / ターン経過-1\n// [STP回復]: ON待機+2 / OFF待機+5 / 休憩全快 / SP変換(1→2)\n`;
 
     commands += `// 〓〓〓 スタンド戦闘(消費STP:2) 〓〓〓\n`;
@@ -927,7 +972,7 @@
     commands += `// 成功数分、ダメージ軽減\n\n`;
     
     commands += `// 〓〓〓 スタンド汎用判定(目標:能力x3) 〓〓〓\n`;
-    commands += `${dicePower}B20<=${dicePrecision}*4-2 【破壊力】判定(精密×4-2)\n`; // 全角＊を半角*に修正推奨
+    commands += `${dicePower}B20<=${dicePrecision}*4-2 【破壊力】判定(精密×4-2)\n`; 
     commands += `${diceSpeed}B20<=${targetCheckSpeed} 【スピード】判定(感x3)\n`;
     commands += `${diceRange}B20<=${targetCheckRange} 【射程】判定(知x3)\n`;
     commands += `${diceDur}B20<=${targetCheckDur} 【持続力】判定(精x3)\n`;
