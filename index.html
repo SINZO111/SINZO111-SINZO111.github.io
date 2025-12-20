@@ -949,6 +949,55 @@
   
   window.addEventListener('DOMContentLoaded', () => { calcAll(); updateList(); });
   window.onclick = function(event) { if (event.target == document.getElementById('helpModal')) document.getElementById('helpModal').style.display = "none"; }
+
+  // 画像として保存 (html2canvasを使用)
+  function generateImage() {
+    const target = document.getElementById('sheet-canvas');
+    const pcName = document.getElementById('pc-name').value || 'character';
+    
+    // トーストで「保存中」を表示
+    showToast("画像を生成中...");
+
+    // 画像生成処理
+    // scale: 2 にすることで高画質（Retina対応）にします
+    html2canvas(target, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `jojo_sheet_${pcName}.png`; // ファイル名を動的に設定
+      link.click();
+      showToast("画像を保存しました！");
+    }).catch(err => {
+      console.error(err);
+      alert("画像の保存に失敗しました。");
+    });
+  }
+
+  // テキスト形式でコピー
+  function generateText() {
+    // 出力用エリアのテキストを取得して整形
+    const pcName = document.getElementById('out-pc-name').innerText;
+    const stats = document.getElementById('out-pc-stats').innerText.replace(/\n\s+/g, '\n');
+    const hp = document.getElementById('out-hp-val').innerText;
+    const sp = document.getElementById('out-sp-val').innerText;
+    const standName = document.getElementById('out-stand-name').innerText;
+    const standAbility = document.getElementById('out-stand-ability').innerText;
+    const standParams = document.getElementById('out-stand-params').innerText.replace(/\n/g, ' / ');
+
+    const text = `
+【JOJO TRPG シート】
+名前: ${pcName}
+HP: ${hp} / SP: ${sp}
+---------------------------
+${stats}
+---------------------------
+スタンド: ${standName}
+能力: ${standAbility}
+パラ: ${standParams}
+    `.trim();
+
+    safeCopy(text);
+  }
+
 </script>
 
 </body>
